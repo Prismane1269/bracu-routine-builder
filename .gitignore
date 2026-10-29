@@ -1,0 +1,4 @@
+node_modules/
+test_output.pdf
+test_screenshot_*.png
+.DS_Store

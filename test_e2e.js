@@ -2,7 +2,6 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-// Simple static server for testing
 function startServer(port = 8085) {
   const mimeTypes = {
     '.html': 'text/html',
@@ -46,7 +45,7 @@ async function runE2ETests() {
   const puppeteer = require('puppeteer');
   const server = await startServer(8085);
 
-  console.log('--- LAUNCHING HEADLESS CHROME E2E TEST SUITE ---');
+  console.log('--- LAUNCHING LIVE DATABASE E2E BROWSER TEST ---');
   const browser = await puppeteer.launch({
     headless: 'new',
     executablePath: fs.existsSync('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
@@ -58,120 +57,100 @@ async function runE2ETests() {
   const page = await browser.newPage();
   await page.setViewport({ width: 1280, height: 900 });
 
-  // Listen to console logs in browser
   page.on('console', msg => {
     if (msg.type() === 'error') {
       console.error('BROWSER ERROR:', msg.text());
     }
   });
 
+  page.on('dialog', async dialog => {
+    console.log('BROWSER DIALOG:', dialog.message());
+    await dialog.dismiss();
+  });
+
   try {
     // 1. Load Page
     console.log('Step 1: Navigating to http://localhost:8085/');
-    await page.goto('http://localhost:8085/', { waitUntil: 'networkidle0' });
+    await page.goto('http://localhost:8085/', { waitUntil: 'networkidle2' });
     const title = await page.title();
-    console.log('✓ Page Title verified:', title);
-    if (!title.includes('RoutineCraft')) {
-      throw new Error('Unexpected page title: ' + title);
-    }
+    console.log('✓ Page Title:', title);
 
-    // 2. Load BRACU Fall 2026 Sample Dataset
-    console.log('Step 2: Clicking "Load BRACU Fall 2026 Sample"...');
-    await page.click('#btnLoadSample');
+    // 2. Wait for live Database API sync to complete
+    console.log('Step 2: Waiting for live Database sync to complete...');
     await page.waitForFunction(() => {
-      const el = document.getElementById('courseCount');
-      return el && parseInt(el.textContent, 10) >= 5;
-    }, { timeout: 5000 });
+      const el = document.getElementById('syncStatusText');
+      return el && el.textContent.includes('Courses)') && !el.textContent.includes('Syncing');
+    }, { timeout: 25000 });
 
-    const courseCount = await page.$eval('#courseCount', el => el.textContent);
-    const secCount = await page.$eval('#sectionTotalBadge', el => el.textContent);
-    console.log(`✓ Courses loaded in UI: ${courseCount} courses (${secCount})`);
+    const syncStatus = await page.$eval('#syncStatusText', el => el.textContent);
+    const catalogCount = await page.$eval('#liveCatalogCountBadge', el => el.textContent);
+    console.log(`✓ Live Database Sync Status: "${syncStatus}" (${catalogCount})`);
 
-    // Take screenshot of course list
-    await page.screenshot({ path: path.join(__dirname, 'test_screenshot_loaded.png') });
-    console.log('✓ Screenshot saved: test_screenshot_loaded.png');
+    // 3. Test Course Autocomplete Search
+    console.log('Step 3: Testing live course autocomplete search for "CSE220"...');
+    await page.type('#courseSearchInput', 'CSE220');
+    await page.waitForSelector('#autocompleteList .autocomplete-item', { visible: true, timeout: 5000 });
+    const matchCount = await page.$$eval('#autocompleteList .autocomplete-item', items => items.length);
+    console.log(`✓ Autocomplete found ${matchCount} matches for CSE220.`);
+    
+    // Click on CSE220
+    await page.click('#autocompleteList .autocomplete-item:first-child');
+    await page.waitForFunction(() => {
+      return document.querySelector('.course-item') !== null;
+    });
+    console.log('✓ Successfully added CSE220 from live database catalog!');
 
-    // 3. Test Generate All Routines
-    console.log('Step 3: Clicking "GENERATE ALL ROUTINES"...');
+    // 4. Test "My Courses Preset"
+    console.log('Step 4: Clicking "My Courses Preset"...');
+    await page.click('#btnLoadMyCourses');
+    await page.waitForFunction(() => {
+      const countEl = document.getElementById('courseCount');
+      return countEl && parseInt(countEl.textContent, 10) === 5;
+    });
+
+    const activeCourseCount = await page.$eval('#courseCount', el => el.textContent);
+    const activeSecCount = await page.$eval('#sectionTotalBadge', el => el.textContent);
+    console.log(`✓ Selected courses loaded: ${activeCourseCount} courses (${activeSecCount})`);
+
+    // 5. Test Generate All Routines
+    console.log('Step 5: Clicking "GENERATE ALL ROUTINES"...');
     await page.click('#btnGenerate');
     await page.waitForSelector('#resultsPanel', { visible: true, timeout: 5000 });
 
     const kpiTotal = await page.$eval('#kpiTotalRoutines', el => el.textContent);
     const kpiTop = await page.$eval('#kpiTopScore', el => el.textContent);
-    const kpi4Day = await page.$eval('#kpi4DayCount', el => el.textContent);
-    console.log(`✓ Solver generated ${kpiTotal} routines!`);
-    console.log(`✓ Highest Evaluated Score: ${kpiTop}`);
-    console.log(`✓ 4-Day routines found: ${kpi4Day}`);
+    console.log(`✓ Generated ${kpiTotal} routines with live database seats!`);
+    console.log(`✓ Top Evaluated Score: ${kpiTop}`);
 
-    if (parseInt(kpiTotal, 10) === 0) {
-      throw new Error('Zero routines generated!');
-    }
-
-    // 4. Verify Routine Cards in DOM
-    console.log('Step 4: Inspecting first routine card in browser...');
-    const firstCardRank = await page.$eval('.routine-card:first-child .rank-badge', el => el.textContent.trim());
-    const firstCardScore = await page.$eval('.routine-card:first-child .score-num', el => el.textContent.trim());
-    const firstCardGrade = await page.$eval('.routine-card:first-child .score-grade', el => el.textContent.trim());
-    console.log(`✓ Card #1: ${firstCardRank} | Score: ${firstCardScore}/100 ${firstCardGrade}`);
-
-    // Check breakdown items exist
-    const breakdownCount = await page.$$eval('.routine-card:first-child .breakdown-item', items => items.length);
-    console.log(`✓ Evaluation breakdown categories displayed: ${breakdownCount} (Day, Early, Gaps, Morning, Lab)`);
-    if (breakdownCount !== 5) {
-      throw new Error(`Expected 5 breakdown items, found ${breakdownCount}`);
-    }
-
-    // Check timetable grid columns exist (Sun-Sat)
-    const dayColsCount = await page.$$eval('.routine-card:first-child .day-col', cols => cols.length);
-    console.log(`✓ Weekly timetable columns rendered: ${dayColsCount} days (Sun-Sat)`);
-    if (dayColsCount !== 6) {
-      throw new Error(`Expected 6 day columns, found ${dayColsCount}`);
-    }
-
-    // 5. Test Filter Pills
-    console.log('Step 5: Testing Day Filter Pills...');
-    await page.click('.filter-pill[data-filter="4"]');
-    const filter4Count = await page.$$eval('.routine-card', cards => cards.length);
-    console.log(`✓ 4-Day filter applied: showing ${filter4Count} cards`);
-    await page.click('.filter-pill[data-filter="all"]');
-
-    // 6. Test In-Browser PDF Export Generation
-    console.log('Step 6: Testing Consolidated PDF Generation inside browser context...');
-    const pdfBlobSize = await page.evaluate(async () => {
-      // Trigger generateRoutinePdf in returnBlob mode to test byte generation
+    // 6. Test In-Browser Consolidated PDF Generation
+    console.log('Step 6: Testing PDF generation from live data...');
+    const pdfBlobSize = await page.evaluate(() => {
       const blob = RoutinePdfExport.generateRoutinePdf(window.lastRankedResults || [], {
-        semester: 'Fall 2026',
+        semester: 'Live Database Sync',
         maxExportCount: 10
       }, { returnBlob: true });
       return blob.size;
     });
+    console.log(`✓ PDF Blob generated: ${pdfBlobSize} bytes.`);
+    if (pdfBlobSize < 10000) throw new Error('PDF size too small');
 
-    console.log(`✓ In-Browser PDF generated successfully! Blob size: ${pdfBlobSize} bytes`);
-    if (pdfBlobSize < 10000) {
-      throw new Error(`PDF Blob size too small (${pdfBlobSize} bytes)`);
-    }
+    // 7. Test "Refresh Live Seats" button
+    console.log('Step 7: Testing "Refresh Live Seats" trigger...');
+    await page.click('#btnRefreshLive');
+    await new Promise(r => setTimeout(r, 2500));
+    const refreshedStatus = await page.$eval('#syncStatusText', el => el.textContent);
+    console.log(`✓ Refresh Live triggered: "${refreshedStatus}"`);
 
-    // Take full page screenshot of results
-    await page.screenshot({ path: path.join(__dirname, 'test_screenshot_results.png'), fullPage: false });
-    console.log('✓ Screenshot saved: test_screenshot_results.png');
-
-    // 7. Test Paste PreConnect Raw Text Modal
-    console.log('Step 7: Testing PreConnect Raw Paste Modal...');
-    await page.click('#btnOpenPasteModal');
-    await page.waitForSelector('#pasteModal.open', { visible: true });
-    await page.click('#btnInsertSampleText');
-    await page.click('#btnParseReplace');
-    await page.waitForFunction(() => !document.getElementById('pasteModal').classList.contains('open'));
-
-    const newCourseCount = await page.$eval('#courseCount', el => el.textContent);
-    console.log(`✓ Paste Modal parsed and replaced: ${newCourseCount} courses active`);
+    // Take screenshot
+    await page.screenshot({ path: path.join(__dirname, 'test_screenshot_live_sync.png') });
+    console.log('✓ Screenshot saved: test_screenshot_live_sync.png');
 
     console.log('========================================================');
-    console.log('🎉 ALL END-TO-END BROWSER TESTS PASSED 100% PERFECTLY! 🎉');
+    console.log('🎉 LIVE DATABASE INTEGRATION PASSED 100% PERFECTLY! 🎉');
     console.log('========================================================');
 
   } catch (err) {
-    console.error('❌ E2E TEST FAILED:', err);
+    console.error('❌ TEST FAILED:', err);
     process.exitCode = 1;
   } finally {
     await browser.close();

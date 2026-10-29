@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RoutineCraft — Automated Routine Builder & 100-Mark Evaluator</title>
-  <meta name="description" content="Generate and rank all valid non-conflicting university routine combinations with transparent evaluated marks out of 100 and 1-click consolidated PDF export.">
+  <title>RoutineCraft — Automated Routine Builder & 100-Mark Evaluator (Live Database Synced)</title>
+  <meta name="description" content="Generate and rank all valid non-conflicting university routine combinations with live database sync, transparent evaluated marks out of 100, and 1-click consolidated PDF export.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -17,26 +17,27 @@
         <div class="brand-icon">🎓</div>
         <div class="brand-text">
           <h1>RoutineCraft</h1>
-          <p>Automated Routine Solver • Evaluated Marks out of 100 • 1-Click PDF</p>
+          <p>Live Database Synced • Combinatorial Routine Solver • Evaluated Marks out of 100</p>
         </div>
       </div>
       <div class="header-actions">
-        <button id="btnLoadSample" class="btn btn-secondary">
-          ⚡ Load BRACU Fall 2026 Sample
+        <!-- Live Database Sync Indicator -->
+        <div id="syncStatusBadge" class="live-sync-pill">
+          <span class="pulse-dot"></span>
+          <span id="syncStatusText">Connecting to Database...</span>
+        </div>
+        <button id="btnRefreshLive" class="btn btn-secondary btn-sm" title="Re-fetch live seats from database">
+          🔄 Refresh Live Seats
         </button>
-        <button id="btnOpenPasteModal" class="btn btn-secondary">
-          📋 Paste PreConnect Raw
+        <button id="btnLoadMyCourses" class="btn btn-primary btn-sm">
+          ⚡ My Courses Preset
         </button>
-        <button id="btnOpenAddCourseModal" class="btn btn-secondary">
-          ➕ Add Course
+        <button id="btnOpenPasteModal" class="btn btn-secondary btn-sm" title="Manual paste fallback">
+          📋 Paste Raw Text
         </button>
-        <button id="btnExportJson" class="btn btn-secondary btn-sm" title="Download schedule as JSON">
-          💾 Save JSON
+        <button id="btnClearAllCourses" class="btn btn-secondary btn-sm">
+          🗑️ Clear
         </button>
-        <button id="btnImportJsonTrigger" class="btn btn-secondary btn-sm" title="Upload schedule JSON">
-          📂 Load JSON
-        </button>
-        <input type="file" id="jsonFileInput" accept=".json" style="display: none;">
       </div>
     </div>
   </header>
@@ -45,40 +46,67 @@
   <main class="container">
     <div class="app-grid">
 
-      <!-- LEFT SIDEBAR: Course & Solver Config -->
+      <!-- LEFT SIDEBAR: Live Course Selector & Solver Preferences -->
       <aside>
         
-        <!-- Courses Card -->
+        <!-- Quick Course Search & Add -->
         <div class="card">
           <div class="card-title">
-            <span>Enrolled Courses (<span id="courseCount">0</span>)</span>
+            <span>Select Courses (Live Database)</span>
+            <span class="badge badge-emerald" id="liveCatalogCountBadge">796 Courses</span>
+          </div>
+
+          <!-- Course Search Input with Autocomplete -->
+          <div class="form-group" style="position: relative; margin-bottom: 12px;">
+            <label class="form-label" for="courseSearchInput">Search & Add Course:</label>
+            <div style="display: flex; gap: 6px;">
+              <input type="text" id="courseSearchInput" class="form-input" placeholder="Type course code, e.g. CSE110, MAT120..." autocomplete="off" style="text-transform: uppercase;">
+              <button id="btnAddSearchedCourse" class="btn btn-primary btn-sm" style="white-space: nowrap;">
+                ➕ Add
+              </button>
+            </div>
+            <!-- Autocomplete Dropdown List -->
+            <div id="autocompleteList" class="autocomplete-dropdown" style="display: none;"></div>
+          </div>
+
+          <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px;">
+            <span style="font-size: 11px; color: var(--text-muted); align-self: center;">Quick Add:</span>
+            <button class="btn btn-secondary btn-sm quick-add-btn" data-course="CSE110">CSE110</button>
+            <button class="btn btn-secondary btn-sm quick-add-btn" data-course="CSE230">CSE230</button>
+            <button class="btn btn-secondary btn-sm quick-add-btn" data-course="MAT120">MAT120</button>
+            <button class="btn btn-secondary btn-sm quick-add-btn" data-course="EEE101">EEE101</button>
+            <button class="btn btn-secondary btn-sm quick-add-btn" data-course="EEE101L">EEE101L</button>
+          </div>
+
+          <!-- Active Enrolled Courses -->
+          <div class="card-title" style="margin-top: 14px; font-size: 14px;">
+            <span>Selected Courses (<span id="courseCount">0</span>)</span>
             <span class="badge badge-indigo" id="sectionTotalBadge">0 Sections</span>
           </div>
 
           <div id="courseList" class="course-list">
-            <!-- Populated via JavaScript -->
-            <div class="empty-state" style="padding: 30px 10px;">
-              <p style="font-size: 13px;">No courses loaded yet.</p>
-              <p style="font-size: 12px; margin-top: 6px; color: #64748b;">Click <strong>Load Sample</strong> or <strong>Paste PreConnect Raw</strong> above.</p>
+            <div class="empty-state" style="padding: 24px 10px;">
+              <p style="font-size: 13px;">No courses selected yet.</p>
+              <p style="font-size: 12px; margin-top: 6px; color: #64748b;">Search for a course above or click <strong>My Courses Preset</strong>.</p>
             </div>
           </div>
         </div>
 
-        <!-- Solver Filters Card -->
+        <!-- Solver Preferences Card -->
         <div class="card">
           <div class="card-title">
-            <span>Solver & Preference Settings</span>
+            <span>Schedule Preferences & Days</span>
           </div>
 
           <div class="form-group">
             <label class="checkbox-label">
-              <input type="checkbox" id="chkOnlyAvailableSeats" checked>
-              <span><strong>Exclude Full Sections</strong> (Seats = 0)</span>
+              <input type="checkbox" id="chkOnlyAvailableSeats">
+              <span><strong>Only Available Seats</strong> (Filter out 0 / Full seats)</span>
             </label>
           </div>
 
           <div class="form-group">
-            <label class="form-label" for="selectScheduleDays">Target Class Days</label>
+            <label class="form-label" for="selectScheduleDays">Target Routine Days</label>
             <select id="selectScheduleDays" class="form-select">
               <option value="any">Any Valid Day Count</option>
               <option value="3">3-Day Only (High Efficiency 🌴)</option>
@@ -91,12 +119,12 @@
           <div class="form-group">
             <label class="checkbox-label">
               <input type="checkbox" id="chkAvoid8Am">
-              <span><strong>Prioritize No 8:00 AM Rush</strong> (+Bonus)</span>
+              <span><strong>Avoid 8:00 AM Rush</strong> (Morning Comfort bonus)</span>
             </label>
           </div>
 
           <div class="form-group">
-            <label class="form-label">Preferred Full Off-Days (Optional)</label>
+            <label class="form-label">Preferred Free / Off-Days (🌴)</label>
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; font-size: 12px;">
               <label class="checkbox-label"><input type="checkbox" name="prefOffDay" value="Sun"> Sun</label>
               <label class="checkbox-label"><input type="checkbox" name="prefOffDay" value="Mon"> Mon</label>
@@ -107,14 +135,14 @@
             </div>
           </div>
 
-          <button id="btnGenerate" class="btn btn-primary btn-lg" style="width: 100%; justify-content: center; margin-top: 8px;">
+          <button id="btnGenerate" class="btn btn-primary btn-lg" style="width: 100%; justify-content: center; margin-top: 10px;">
             🚀 GENERATE ALL ROUTINES
           </button>
         </div>
 
       </aside>
 
-      <!-- RIGHT PANEL: Results, Ranking & PDF Export -->
+      <!-- RIGHT PANEL: Results, Evaluation & PDF Export -->
       <section>
         
         <!-- Results Section (Hidden until generated) -->
@@ -143,9 +171,9 @@
           <!-- PDF & Results Toolbar -->
           <div class="results-toolbar">
             <div class="toolbar-filters">
-              <span style="font-size: 12px; font-weight: 600; color: #94a3b8; margin-right: 4px;">Filter:</span>
+              <span style="font-size: 12px; font-weight: 600; color: #94a3b8; margin-right: 4px;">Filter Days:</span>
               <button class="filter-pill active" data-filter="all">All</button>
-              <button class="filter-pill" data-filter="3">3-Day</button>
+              <button class="filter-pill" data-filter="3">3-Day 🌴</button>
               <button class="filter-pill" data-filter="4">4-Day</button>
               <button class="filter-pill" data-filter="5">5-Day</button>
             </div>
@@ -159,7 +187,7 @@
               </select>
 
               <button id="btnExportPdf" class="btn btn-success">
-                📄 Download Evaluated PDF Report
+                📄 Download Evaluated PDF Report (Marks / 100)
               </button>
             </div>
           </div>
@@ -174,17 +202,16 @@
         <!-- Initial Placeholder State -->
         <div id="initialState" class="card" style="padding: 60px 20px; text-align: center;">
           <div class="empty-icon">🗓️</div>
-          <h2 style="font-size: 18px; margin-bottom: 8px;">Ready to Generate Your Optimal Routine</h2>
+          <h2 style="font-size: 18px; margin-bottom: 8px;">Select Your Courses with Live Database Sync</h2>
           <p style="color: var(--text-muted); font-size: 13.5px; max-width: 520px; margin: 0 auto 20px;">
-            Input your courses, sections, and class timings above or click <strong>Load BRACU Fall 2026 Sample</strong>.
-            The solver will check every combination for time conflicts, calculate transparent evaluation marks out of 100, and export everything into a single, clean PDF file!
+            The website is connected directly to the university live database. Select your courses on the left—schedules, faculties, and live seat counts are automatically fetched in real time. Then choose your preferred days and click <strong>Generate All Routines</strong>!
           </p>
           <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-            <button class="btn btn-primary" onclick="document.getElementById('btnLoadSample').click()">
-              ⚡ Load BRACU Fall 2026 Preset
+            <button class="btn btn-primary" onclick="document.getElementById('btnLoadMyCourses').click()">
+              ⚡ Load My Courses (CSE110, CSE230, MAT120, EEE101)
             </button>
-            <button class="btn btn-secondary" onclick="document.getElementById('btnOpenPasteModal').click()">
-              📋 Paste PreConnect Text
+            <button class="btn btn-secondary" onclick="document.getElementById('btnRefreshLive').click()">
+              🔄 Check Live Seats Status
             </button>
           </div>
         </div>
@@ -194,93 +221,25 @@
     </div>
   </main>
 
-  <!-- MODAL: Paste PreConnect Raw Text -->
+  <!-- MODAL: Paste Schedule Text (Fallback) -->
   <div id="pasteModal" class="modal-overlay">
     <div class="modal-box">
       <div class="modal-header">
-        <h3 style="font-size: 16px; font-weight: 700;">Paste PreConnect / USIS Schedule Text</h3>
+        <h3 style="font-size: 16px; font-weight: 700;">Paste Course Schedule Text</h3>
         <button id="btnClosePasteModal" class="close-btn">&times;</button>
       </div>
 
       <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 12px;">
-        Copy and paste course section blocks directly from PreConnect or USIS (e.g. <code>CSE110 - 01 ... Monday 11:00 AM - 12:20 PM ...</code>). The parser will automatically extract courses, sections, faculty, days, times, and remaining seats.
+        You can also paste raw course text (e.g. <code>CSE110 - 01 ... Monday 11:00 AM - 12:20 PM ...</code>).
       </p>
 
       <div class="form-group">
-        <textarea id="rawTextInput" class="form-textarea" placeholder="Paste your raw text dump here...&#10;e.g.&#10;CSE110 - 01&#10;TAW&#10;Class:Monday 11:00 AM - 12:20 PM&#10;Wednesday 11:00 AM - 12:20 PM&#10;Lab:Thursday 11:00 AM - 1:50 PM&#10;5 Remaining"></textarea>
-      </div>
-
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-        <button id="btnInsertSampleText" class="btn btn-secondary btn-sm">
-          Load Sample Raw Text
-        </button>
-
-        <div style="display: flex; gap: 8px;">
-          <button id="btnParseAppend" class="btn btn-secondary">
-            Append to Existing
-          </button>
-          <button id="btnParseReplace" class="btn btn-primary">
-            Parse & Replace
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL: Add Custom Course -->
-  <div id="addCourseModal" class="modal-overlay">
-    <div class="modal-box">
-      <div class="modal-header">
-        <h3 style="font-size: 16px; font-weight: 700;">Add Custom Course</h3>
-        <button id="btnCloseAddCourseModal" class="close-btn">&times;</button>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="newCourseCode">Course Code</label>
-        <input type="text" id="newCourseCode" class="form-input" placeholder="e.g. CSE110, MAT120" style="text-transform: uppercase;">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="newCourseSecNum">Section Number</label>
-        <input type="number" id="newCourseSecNum" class="form-input" value="1" min="1">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="newCourseFaculty">Faculty Initials (Optional)</label>
-        <input type="text" id="newCourseFaculty" class="form-input" placeholder="e.g. TAW, MVH" style="text-transform: uppercase;">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Theory Days</label>
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; font-size: 12px;">
-          <label class="checkbox-label"><input type="checkbox" name="newTheoryDay" value="Sun"> Sun</label>
-          <label class="checkbox-label"><input type="checkbox" name="newTheoryDay" value="Mon"> Mon</label>
-          <label class="checkbox-label"><input type="checkbox" name="newTheoryDay" value="Tue"> Tue</label>
-          <label class="checkbox-label"><input type="checkbox" name="newTheoryDay" value="Wed"> Wed</label>
-          <label class="checkbox-label"><input type="checkbox" name="newTheoryDay" value="Thu"> Thu</label>
-          <label class="checkbox-label"><input type="checkbox" name="newTheoryDay" value="Sat"> Sat</label>
-        </div>
-      </div>
-
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-        <div class="form-group">
-          <label class="form-label" for="newTheoryStart">Start Time</label>
-          <input type="text" id="newTheoryStart" class="form-input" placeholder="e.g. 11:00 AM" value="11:00 AM">
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="newTheoryEnd">End Time</label>
-          <input type="text" id="newTheoryEnd" class="form-input" placeholder="e.g. 12:20 PM" value="12:20 PM">
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="newSeatsRemaining">Seats Remaining</label>
-        <input type="number" id="newSeatsRemaining" class="form-input" value="25" min="0">
+        <textarea id="rawTextInput" class="form-textarea" placeholder="Paste your raw text dump here..."></textarea>
       </div>
 
       <div style="display: flex; justify-content: flex-end; gap: 8px;">
-        <button id="btnSaveCustomCourse" class="btn btn-primary">
-          Save Section
+        <button id="btnParseReplace" class="btn btn-primary">
+          Parse & Load
         </button>
       </div>
     </div>
@@ -290,6 +249,7 @@
   <script src="vendor/jspdf.umd.min.js"></script>
   <script src="vendor/jspdf.plugin.autotable.min.js"></script>
   <script src="parser.js"></script>
+  <script src="live-database.js"></script>
   <script src="generator.js"></script>
   <script src="ranker.js"></script>
   <script src="pdf-export.js"></script>

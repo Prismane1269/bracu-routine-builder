@@ -1,15 +1,27 @@
 /**
- * app.js - Main Application Controller for RoutineCraft
+ * app.js - Main Application Controller for RoutineCraft (Live Database Integrated)
  */
 
 document.addEventListener('DOMContentLoaded', () => {
 
   // Global State
-  let currentCoursesData = {};
+  let allLiveCoursesCatalog = {}; // All 796 courses from Database
+  let selectedCoursesData = {};   // Active courses chosen by the student
   let lastRankedResults = [];
   let currentActiveFilter = 'all';
 
   // DOM Elements
+  const syncStatusBadge = document.getElementById('syncStatusBadge');
+  const syncStatusText = document.getElementById('syncStatusText');
+  const liveCatalogCountBadge = document.getElementById('liveCatalogCountBadge');
+  const btnRefreshLive = document.getElementById('btnRefreshLive');
+  const btnLoadMyCourses = document.getElementById('btnLoadMyCourses');
+  const btnClearAllCourses = document.getElementById('btnClearAllCourses');
+
+  const courseSearchInput = document.getElementById('courseSearchInput');
+  const btnAddSearchedCourse = document.getElementById('btnAddSearchedCourse');
+  const autocompleteList = document.getElementById('autocompleteList');
+
   const courseListEl = document.getElementById('courseList');
   const courseCountEl = document.getElementById('courseCount');
   const sectionTotalBadge = document.getElementById('sectionTotalBadge');
@@ -23,244 +35,212 @@ document.addEventListener('DOMContentLoaded', () => {
   const kpi3DayCount = document.getElementById('kpi3DayCount');
   const kpi4DayCount = document.getElementById('kpi4DayCount');
 
-  // Buttons
-  const btnLoadSample = document.getElementById('btnLoadSample');
+  // Modal elements
   const btnOpenPasteModal = document.getElementById('btnOpenPasteModal');
   const btnClosePasteModal = document.getElementById('btnClosePasteModal');
   const pasteModal = document.getElementById('pasteModal');
   const rawTextInput = document.getElementById('rawTextInput');
-  const btnParseAppend = document.getElementById('btnParseAppend');
   const btnParseReplace = document.getElementById('btnParseReplace');
-  const btnInsertSampleText = document.getElementById('btnInsertSampleText');
 
-  const btnOpenAddCourseModal = document.getElementById('btnOpenAddCourseModal');
-  const btnCloseAddCourseModal = document.getElementById('btnCloseAddCourseModal');
-  const addCourseModal = document.getElementById('addCourseModal');
-  const btnSaveCustomCourse = document.getElementById('btnSaveCustomCourse');
-
-  const btnExportJson = document.getElementById('btnExportJson');
-  const btnImportJsonTrigger = document.getElementById('btnImportJsonTrigger');
-  const jsonFileInput = document.getElementById('jsonFileInput');
-
+  // Solver controls
   const btnGenerate = document.getElementById('btnGenerate');
   const btnExportPdf = document.getElementById('btnExportPdf');
   const selectPdfCount = document.getElementById('selectPdfCount');
-
   const chkOnlyAvailableSeats = document.getElementById('chkOnlyAvailableSeats');
   const selectScheduleDays = document.getElementById('selectScheduleDays');
   const chkAvoid8Am = document.getElementById('chkAvoid8Am');
 
   // --- Modal Helpers ---
-  function openModal(modalEl) {
-    modalEl.classList.add('open');
-  }
-  function closeModal(modalEl) {
-    modalEl.classList.remove('open');
-  }
+  function openModal(modalEl) { modalEl.classList.add('open'); }
+  function closeModal(modalEl) { modalEl.classList.remove('open'); }
 
   btnOpenPasteModal.addEventListener('click', () => openModal(pasteModal));
   btnClosePasteModal.addEventListener('click', () => closeModal(pasteModal));
-  btnOpenAddCourseModal.addEventListener('click', () => openModal(addCourseModal));
-  btnCloseAddCourseModal.addEventListener('click', () => closeModal(addCourseModal));
-
   window.addEventListener('click', (e) => {
     if (e.target === pasteModal) closeModal(pasteModal);
-    if (e.target === addCourseModal) closeModal(addCourseModal);
   });
 
-  // --- Load Sample BRACU Fall 2026 Data ---
-  btnLoadSample.addEventListener('click', async () => {
+  // --- Initial Database Live Sync ---
+  async function syncWithDatabase(force = false) {
+    syncStatusBadge.classList.remove('error');
+    syncStatusText.textContent = 'Syncing Live Database...';
     try {
-      const resp = await fetch('data/sample_fall2026.json');
-      if (resp.ok) {
-        currentCoursesData = await resp.json();
-        renderCourseList();
-        showNotification('BRACU Fall 2026 dataset loaded successfully! (5 courses, 66 sections)');
-      } else {
-        throw new Error('Failed to fetch sample json');
-      }
-    } catch (err) {
-      console.warn('Direct fetch failed, checking embedded fallback:', err);
-      showNotification('Loaded sample course dataset.');
-    }
-  });
-
-  // Sample raw text button
-  btnInsertSampleText.addEventListener('click', () => {
-    rawTextInput.value = `CSE110 - 01
-PROGRAMMING LANGUAGE I
-TAW
-Class:Monday 11:00 AM - 12:20 PM
-Wednesday 11:00 AM - 12:20 PM
-Lab:Thursday 11:00 AM - 1:50 PM
-Room:Theory: 10A-05C
-Lab: 09B-08L
-5 Remaining
-
-CSE110 - 04
-KNI
-Class:Monday 2:00 PM - 3:20 PM
-Wednesday 2:00 PM - 3:20 PM
-Lab:Thursday 2:00 PM - 4:50 PM
-10 Remaining
-
-CSE230 - 10
-YND
-Class:Monday 3:30 PM - 4:50 PM
-Wednesday 3:30 PM - 4:50 PM
-0 Remaining
-
-MAT120 - 15
-Class:Thursday 5:00 PM - 6:20 PM
-Saturday 5:00 PM - 6:20 PM
-Lab:Wednesday 9:30 AM - 10:50 AM
-30 Remaining
-
-EEE101 - 05
-Class:Saturday 12:30 PM - 1:50 PM
-Thursday 12:30 PM - 1:50 PM
-2 Remaining
-
-EEE101L - 12
-Class:Saturday 2:00 PM - 4:50 PM
-5 Remaining`;
-  });
-
-  // --- Parse Raw PreConnect Text ---
-  btnParseReplace.addEventListener('click', () => {
-    const raw = rawTextInput.value.trim();
-    if (!raw) return alert('Please paste some schedule text first.');
-    const parsed = RoutineParser.parsePreconnectText(raw);
-    if (Object.keys(parsed).length === 0) {
-      return alert('Could not parse any courses. Please ensure text contains headers like "CSE110 - 01".');
-    }
-    currentCoursesData = parsed;
-    renderCourseList();
-    closeModal(pasteModal);
-    showNotification(`Parsed ${Object.keys(parsed).length} courses!`);
-  });
-
-  btnParseAppend.addEventListener('click', () => {
-    const raw = rawTextInput.value.trim();
-    if (!raw) return alert('Please paste some schedule text first.');
-    const parsed = RoutineParser.parsePreconnectText(raw);
-    if (Object.keys(parsed).length === 0) {
-      return alert('Could not parse any courses.');
-    }
-    for (const [course, sections] of Object.entries(parsed)) {
-      if (!currentCoursesData[course]) {
-        currentCoursesData[course] = [];
-      }
-      // Avoid duplicate sections
-      const existingSecNums = new Set(currentCoursesData[course].map(s => s.section));
-      for (const s of sections) {
-        if (!existingSecNums.has(s.section)) {
-          currentCoursesData[course].push(s);
+      const res = await LiveDatabaseSync.fetchLiveDatabaseData({ forceRefresh: force });
+      allLiveCoursesCatalog = res.coursesData;
+      const count = Object.keys(allLiveCoursesCatalog).length;
+      liveCatalogCountBadge.textContent = `${count} Courses Live`;
+      syncStatusText.textContent = `Live Database (${count} Courses)`;
+      
+      // If user already had courses selected, update their sections with fresh live seats
+      for (const c of Object.keys(selectedCoursesData)) {
+        if (allLiveCoursesCatalog[c]) {
+          selectedCoursesData[c] = allLiveCoursesCatalog[c];
         }
       }
-      currentCoursesData[course].sort((a, b) => a.section - b.section);
-    }
-    renderCourseList();
-    closeModal(pasteModal);
-    showNotification('Appended newly parsed courses!');
-  });
+      renderSelectedCoursesList();
 
-  // --- Save Custom Course from Modal ---
-  btnSaveCustomCourse.addEventListener('click', () => {
-    const code = document.getElementById('newCourseCode').value.trim().toUpperCase();
-    const secNum = parseInt(document.getElementById('newCourseSecNum').value, 10);
-    const faculty = document.getElementById('newCourseFaculty').value.trim().toUpperCase() || 'TBA';
-    const startT = document.getElementById('newTheoryStart').value.trim();
-    const endT = document.getElementById('newTheoryEnd').value.trim();
-    const seats = parseInt(document.getElementById('newSeatsRemaining').value, 10) || 30;
-
-    const checkedDays = Array.from(document.querySelectorAll('input[name="newTheoryDay"]:checked')).map(cb => cb.value);
-
-    if (!code) return alert('Please enter a course code (e.g. CSE110).');
-    if (!checkedDays.length) return alert('Please select at least one day for this section.');
-
-    const normStart = RoutineParser.normalizeTime(startT);
-    const normEnd = RoutineParser.normalizeTime(endT);
-    const timeKey = `${normStart}-${normEnd}`;
-
-    if (!currentCoursesData[code]) {
-      currentCoursesData[code] = [];
-    }
-
-    currentCoursesData[code].push({
-      section: secNum,
-      faculty: faculty,
-      seats_remaining: seats,
-      slots: [{
-        days: checkedDays,
-        days_str: checkedDays.join(''),
-        time: timeKey,
-        room: 'TBA'
-      }]
-    });
-
-    currentCoursesData[code].sort((a, b) => a.section - b.section);
-    renderCourseList();
-    closeModal(addCourseModal);
-    showNotification(`Added ${code} Sec ${secNum}!`);
-  });
-
-  // --- JSON Import / Export ---
-  btnExportJson.addEventListener('click', () => {
-    if (Object.keys(currentCoursesData).length === 0) {
-      return alert('No courses loaded to export.');
-    }
-    const blob = new Blob([JSON.stringify(currentCoursesData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `RoutineCraft_Courses_${Date.now()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  });
-
-  btnImportJsonTrigger.addEventListener('click', () => jsonFileInput.click());
-  jsonFileInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (evt) => {
+      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      showNotification(`Live seats synced with database (${count} courses) at ${timeStr}`);
+    } catch (err) {
+      console.error('Database live sync failed, checking fallback:', err);
+      syncStatusBadge.classList.add('error');
+      syncStatusText.textContent = 'Database Offline (Cached)';
+      // Attempt to load local sample fallback
       try {
-        const data = JSON.parse(evt.target.result);
-        currentCoursesData = data;
-        renderCourseList();
-        showNotification('Schedule JSON loaded successfully!');
-      } catch (err) {
-        alert('Invalid JSON file format.');
+        const resp = await fetch('data/sample_fall2026.json');
+        if (resp.ok) {
+          allLiveCoursesCatalog = await resp.json();
+          renderSelectedCoursesList();
+        }
+      } catch (e) {}
+    }
+  }
+
+  // --- Quick Autocomplete for 796 Courses ---
+  function updateAutocomplete() {
+    const query = courseSearchInput.value.trim().toUpperCase();
+    if (!query) {
+      autocompleteList.style.display = 'none';
+      return;
+    }
+
+    const allCodes = Object.keys(allLiveCoursesCatalog);
+    const matches = allCodes.filter(c => c.includes(query)).slice(0, 10);
+
+    if (matches.length === 0) {
+      autocompleteList.innerHTML = `<div style="padding: 10px; font-size: 12px; color: #94a3b8;">No course matching "${query}"</div>`;
+      autocompleteList.style.display = 'block';
+      return;
+    }
+
+    autocompleteList.innerHTML = matches.map(c => {
+      const secCount = (allLiveCoursesCatalog[c] || []).length;
+      const firstSec = (allLiveCoursesCatalog[c] || [])[0] || {};
+      const facName = firstSec.faculty_name || firstSec.faculty || '';
+      return `
+        <div class="autocomplete-item" data-course="${c}">
+          <div>
+            <strong>${c}</strong>
+            <span style="font-size: 11px; color: #94a3b8; margin-left: 6px;">${facName}</span>
+          </div>
+          <span class="badge badge-indigo">${secCount} Secs</span>
+        </div>
+      `;
+    }).join('');
+
+    autocompleteList.style.display = 'block';
+
+    autocompleteList.querySelectorAll('.autocomplete-item').forEach(item => {
+      item.addEventListener('click', () => {
+        addCourseToSelected(item.dataset.course);
+        courseSearchInput.value = '';
+        autocompleteList.style.display = 'none';
+      });
+    });
+  }
+
+  courseSearchInput.addEventListener('input', updateAutocomplete);
+  courseSearchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const code = courseSearchInput.value.trim().toUpperCase();
+      if (code && allLiveCoursesCatalog[code]) {
+        addCourseToSelected(code);
+        courseSearchInput.value = '';
+        autocompleteList.style.display = 'none';
       }
-    };
-    reader.readAsText(file);
+    } else if (e.key === 'Escape') {
+      autocompleteList.style.display = 'none';
+    }
   });
 
-  // --- Render Course List in Sidebar ---
-  function renderCourseList() {
+  document.addEventListener('click', (e) => {
+    if (!courseSearchInput.contains(e.target) && !autocompleteList.contains(e.target)) {
+      autocompleteList.style.display = 'none';
+    }
+  });
+
+  btnAddSearchedCourse.addEventListener('click', () => {
+    const code = courseSearchInput.value.trim().toUpperCase();
+    if (code) {
+      addCourseToSelected(code);
+      courseSearchInput.value = '';
+      autocompleteList.style.display = 'none';
+    }
+  });
+
+  // Quick Add Buttons
+  document.querySelectorAll('.quick-add-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      addCourseToSelected(btn.dataset.course);
+    });
+  });
+
+  // --- Add Course to Selected List ---
+  function addCourseToSelected(courseCode) {
+    if (!allLiveCoursesCatalog[courseCode]) {
+      return alert(`Course "${courseCode}" not found in live database catalog.`);
+    }
+
+    if (selectedCoursesData[courseCode]) {
+      return showNotification(`${courseCode} is already in your selected courses.`);
+    }
+
+    selectedCoursesData[courseCode] = allLiveCoursesCatalog[courseCode];
+    renderSelectedCoursesList();
+    showNotification(`Added ${courseCode} (${selectedCoursesData[courseCode].length} sections live)`);
+  }
+
+  // --- Load User's Courses Preset ---
+  btnLoadMyCourses.addEventListener('click', () => {
+    const presetCourses = ['CSE110', 'CSE230', 'MAT120', 'EEE101', 'EEE101L'];
+    selectedCoursesData = {};
+    for (const c of presetCourses) {
+      if (allLiveCoursesCatalog[c]) {
+        selectedCoursesData[c] = allLiveCoursesCatalog[c];
+      }
+    }
+    renderSelectedCoursesList();
+    showNotification('Loaded CSE110, CSE230, MAT120, EEE101, EEE101L with live database seats!');
+  });
+
+  // --- Clear All Courses ---
+  btnClearAllCourses.addEventListener('click', () => {
+    selectedCoursesData = {};
+    renderSelectedCoursesList();
+    resultsPanel.style.display = 'none';
+    initialState.style.display = 'block';
+  });
+
+  // --- Refresh Live Seats Button ---
+  btnRefreshLive.addEventListener('click', () => {
+    syncWithDatabase(true);
+  });
+
+  // --- Render Selected Courses List ---
+  function renderSelectedCoursesList() {
     courseListEl.innerHTML = '';
-    const courseKeys = Object.keys(currentCoursesData);
+    const courseKeys = Object.keys(selectedCoursesData);
     courseCountEl.textContent = courseKeys.length;
 
     let totalSections = 0;
     courseKeys.forEach(c => {
-      totalSections += (currentCoursesData[c] || []).length;
+      totalSections += (selectedCoursesData[c] || []).length;
     });
     sectionTotalBadge.textContent = `${totalSections} Sections`;
 
     if (courseKeys.length === 0) {
       courseListEl.innerHTML = `
-        <div class="empty-state" style="padding: 30px 10px;">
-          <p style="font-size: 13px;">No courses loaded yet.</p>
-          <p style="font-size: 12px; margin-top: 6px; color: #64748b;">Click <strong>Load Sample</strong> or <strong>Paste PreConnect Raw</strong> above.</p>
+        <div class="empty-state" style="padding: 24px 10px;">
+          <p style="font-size: 13px;">No courses selected yet.</p>
+          <p style="font-size: 12px; margin-top: 6px; color: #64748b;">Search for a course above or click <strong>My Courses Preset</strong>.</p>
         </div>
       `;
       return;
     }
 
     courseKeys.forEach(c => {
-      const sections = currentCoursesData[c] || [];
+      const sections = selectedCoursesData[c] || [];
       const item = document.createElement('div');
       item.className = 'course-item';
 
@@ -289,7 +269,7 @@ Class:Saturday 2:00 PM - 4:50 PM
           <div>
             <label style="font-size: 10.5px; color: #94a3b8; display: block; margin-bottom: 2px;">Actions:</label>
             <button class="btn btn-secondary btn-sm btn-delete-course" data-course="${c}" style="width: 100%; justify-content: center; padding: 4px; color: #fda4af;">
-              Delete
+              Remove
             </button>
           </div>
         </div>
@@ -298,7 +278,7 @@ Class:Saturday 2:00 PM - 4:50 PM
           ${sections.map(s => {
             const isFull = s.seats_remaining === 0;
             return `
-              <span class="section-chip ${isFull ? 'full' : ''}" title="${s.faculty} | ${s.slots.map(sl => sl.time).join(', ')}">
+              <span class="section-chip ${isFull ? 'full' : ''}" title="${s.faculty_name || s.faculty} | ${s.slots.map(sl => sl.time).join(', ')}">
                 Sec ${s.section} [${s.faculty}] ${isFull ? '⚠️ Full' : `(${s.seats_remaining})`}
               </span>
             `;
@@ -306,17 +286,31 @@ Class:Saturday 2:00 PM - 4:50 PM
         </div>
       `;
 
-      // Event: Delete course
+      // Event: Remove course
       item.querySelector('.btn-delete-course').addEventListener('click', () => {
-        delete currentCoursesData[c];
-        renderCourseList();
+        delete selectedCoursesData[c];
+        renderSelectedCoursesList();
       });
 
       courseListEl.appendChild(item);
     });
   }
 
-  // --- GENERATE ALL ROUTINES ---
+  // --- Fallback Raw Paste Parser ---
+  btnParseReplace.addEventListener('click', () => {
+    const raw = rawTextInput.value.trim();
+    if (!raw) return alert('Please paste some schedule text first.');
+    const parsed = RoutineParser.parsePreconnectText(raw);
+    if (Object.keys(parsed).length === 0) {
+      return alert('Could not parse any courses.');
+    }
+    selectedCoursesData = parsed;
+    renderSelectedCoursesList();
+    closeModal(pasteModal);
+    showNotification(`Parsed ${Object.keys(parsed).length} courses from text!`);
+  });
+
+  // --- GENERATE ALL ROUTINE COMBINATIONS ---
   btnGenerate.addEventListener('click', () => {
     const includedCourses = Array.from(document.querySelectorAll('.course-include-chk:checked')).map(cb => cb.dataset.course);
 
@@ -334,17 +328,15 @@ Class:Saturday 2:00 PM - 4:50 PM
       }
     });
 
-    // Options
     const options = {
       onlyAvailableSeats: chkOnlyAvailableSeats.checked,
       lockedSections: lockedSections,
       maxLimit: 15000
     };
 
-    // Filter sections for included courses only
     const activeCourseData = {};
     for (const c of includedCourses) {
-      activeCourseData[c] = currentCoursesData[c] || [];
+      activeCourseData[c] = selectedCoursesData[c] || [];
     }
 
     const genResult = RoutineGenerator.generateRoutines(activeCourseData, options);
@@ -354,17 +346,17 @@ Class:Saturday 2:00 PM - 4:50 PM
     }
 
     if (!genResult.routines || genResult.routines.length === 0) {
-      return alert('No conflict-free routine combinations could be found with the selected options and seat constraints. Try unchecking "Exclude Full Sections" or unlocking sections.');
+      return alert('No conflict-free routine combinations found with the selected options and seat constraints. Try unchecking "Only Available Seats" or unlocking sections.');
     }
 
-    // Ranking with marks out of 100
+    // Evaluate marks strictly out of 100
     const rankOptions = {
       avoid8Am: chkAvoid8Am.checked
     };
 
     let ranked = RoutineRanker.rankRoutines(genResult.routines, rankOptions);
 
-    // Filter by target class days if specified
+    // Target routine days filter
     const targetDays = selectScheduleDays.value;
     if (targetDays === '3') {
       ranked = ranked.filter(r => r.evalData.totalDays === 3);
@@ -376,7 +368,7 @@ Class:Saturday 2:00 PM - 4:50 PM
       ranked = ranked.filter(r => r.evalData.totalDays === 5);
     }
 
-    // Filter by preferred free days if checked
+    // Preferred off-days filter
     const preferredOffDays = Array.from(document.querySelectorAll('input[name="prefOffDay"]:checked')).map(cb => cb.value);
     if (preferredOffDays.length > 0) {
       ranked = ranked.filter(r => {
@@ -385,7 +377,7 @@ Class:Saturday 2:00 PM - 4:50 PM
       });
     }
 
-    // Re-assign rank numbers after filtering
+    // Re-assign ranks
     ranked.forEach((item, idx) => {
       item.rank = idx + 1;
     });
@@ -394,7 +386,7 @@ Class:Saturday 2:00 PM - 4:50 PM
     window.lastRankedResults = ranked;
 
     if (ranked.length === 0) {
-      return alert('No routines matched your day count or off-day filters. Please widen your filter criteria.');
+      return alert('No routines matched your day count or off-day filters. Try widening your preferences.');
     }
 
     // Display Results
@@ -406,7 +398,6 @@ Class:Saturday 2:00 PM - 4:50 PM
     document.querySelectorAll('.filter-pill').forEach(p => p.classList.toggle('active', p.dataset.filter === 'all'));
     renderRoutineCards(ranked);
 
-    // Scroll to results
     resultsPanel.scrollIntoView({ behavior: 'smooth' });
     showNotification(`Generated ${ranked.length} optimal routines! Top score: ${ranked[0].score}/100 [${ranked[0].grade}]`);
   });
@@ -423,7 +414,7 @@ Class:Saturday 2:00 PM - 4:50 PM
     kpi4DayCount.textContent = fourDays;
   }
 
-  // --- Filter Pills Handling ---
+  // --- Day Filter Pills ---
   document.querySelectorAll('.filter-pill').forEach(pill => {
     pill.addEventListener('click', () => {
       document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
@@ -440,17 +431,13 @@ Class:Saturday 2:00 PM - 4:50 PM
     });
   });
 
-  // --- Render Routine Cards ---
+  // --- Render Routine Cards Stream ---
   function renderRoutineCards(routines) {
     routineCardsContainer.innerHTML = '';
-    const renderLimit = Math.min(routines.length, 50); // render top 50 in DOM for blazing speed
+    const renderLimit = Math.min(routines.length, 50);
 
     if (routines.length === 0) {
-      routineCardsContainer.innerHTML = `
-        <div class="empty-state">
-          <p>No routines match this day filter.</p>
-        </div>
-      `;
+      routineCardsContainer.innerHTML = `<div class="empty-state"><p>No routines match this day filter.</p></div>`;
       return;
     }
 
@@ -467,7 +454,7 @@ Class:Saturday 2:00 PM - 4:50 PM
       const card = document.createElement('div');
       card.className = 'routine-card';
 
-      // Timetable Matrix columns
+      // Timetable Matrix
       const matrixColsHtml = WEEK_DAYS.map(d => {
         const slots = evalData.dayClasses[d];
         if (!slots || slots.length === 0) {
@@ -494,7 +481,7 @@ Class:Saturday 2:00 PM - 4:50 PM
         `;
       }).join('');
 
-      // Enrolled course table rows
+      // Enrolled Table
       const tableRowsHtml = Object.entries(routine).map(([cName, secInfo]) => {
         const slotsStr = (secInfo.slots || []).map(s => `${s.days_str || s.days.join('')} ${s.time}`).join(' ; ');
         const seatsBadge = secInfo.seats_remaining !== undefined
@@ -535,7 +522,6 @@ Class:Saturday 2:00 PM - 4:50 PM
           </button>
         </div>
 
-        <!-- Marks Breakdown Bar -->
         <div class="marks-breakdown-bar">
           <div class="breakdown-item">
             <div class="breakdown-label">Day Efficiency</div>
@@ -559,12 +545,10 @@ Class:Saturday 2:00 PM - 4:50 PM
           </div>
         </div>
 
-        <!-- Timetable Grid -->
         <div class="timetable-grid">
           ${matrixColsHtml}
         </div>
 
-        <!-- Enrolled Course Table -->
         <table class="routine-table">
           <thead>
             <tr>
@@ -572,7 +556,7 @@ Class:Saturday 2:00 PM - 4:50 PM
               <th>Section</th>
               <th>Faculty</th>
               <th>Class & Lab Timings</th>
-              <th>Seats Status</th>
+              <th>Live Seats</th>
             </tr>
           </thead>
           <tbody>
@@ -581,10 +565,9 @@ Class:Saturday 2:00 PM - 4:50 PM
         </table>
       `;
 
-      // Event: Export single routine
       card.querySelector('.btn-export-single').addEventListener('click', () => {
         const metadata = {
-          semester: 'Fall 2026',
+          semester: 'Live Database Sync',
           courses: Object.keys(routine),
           maxExportCount: 1,
           filename: `Routine_Rank_${rank}_Score_${score}.pdf`
@@ -602,7 +585,7 @@ Class:Saturday 2:00 PM - 4:50 PM
       notice.style.padding = '16px';
       notice.style.color = '#94a3b8';
       notice.style.fontSize = '13px';
-      notice.innerHTML = `Showing top <strong>${renderLimit}</strong> routines in browser for performance. Click <strong>Download Evaluated PDF Report</strong> above to get all <strong>${routines.length}</strong> routines in one consolidated PDF!`;
+      notice.innerHTML = `Showing top <strong>${renderLimit}</strong> routines in browser. Click <strong>Download Evaluated PDF Report</strong> above to get all <strong>${routines.length}</strong> routines in one PDF!`;
       routineCardsContainer.appendChild(notice);
     }
   }
@@ -617,7 +600,7 @@ Class:Saturday 2:00 PM - 4:50 PM
     const maxExport = exportLimitChoice === 'all' ? 0 : parseInt(exportLimitChoice, 10);
 
     const metadata = {
-      semester: 'Fall 2026',
+      semester: 'Live Database Sync',
       courses: Object.keys(lastRankedResults[0].routine),
       maxExportCount: maxExport,
       generatedAt: new Date().toLocaleString()
@@ -635,7 +618,7 @@ Class:Saturday 2:00 PM - 4:50 PM
     }, 100);
   });
 
-  // --- Notification Toast ---
+  // --- Toast Notification ---
   function showNotification(msg) {
     let toast = document.getElementById('appToast');
     if (!toast) {
@@ -662,5 +645,8 @@ Class:Saturday 2:00 PM - 4:50 PM
       toast.style.opacity = '0';
     }, 4000);
   }
+
+  // Kick off automatic initial sync on page load!
+  syncWithDatabase(false);
 
 });

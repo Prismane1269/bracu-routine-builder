@@ -174,7 +174,8 @@
       doc.setTextColor(71, 85, 105);
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(7.5);
-      doc.text(`MARKS BREAKDOWN:   ${breakdownText}`, margin + 6, currentY + 10);
+      const tagsStr = (evalData.tags || []).length ? `   |   ${evalData.tags.join('  •  ')}` : '';
+      doc.text(`MARKS: ${breakdownText}${tagsStr}`, margin + 6, currentY + 10);
 
       currentY += 16;
 

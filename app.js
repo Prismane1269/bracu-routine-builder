@@ -47,8 +47,82 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnExportPdf = document.getElementById('btnExportPdf');
   const selectPdfCount = document.getElementById('selectPdfCount');
   const chkOnlyAvailableSeats = document.getElementById('chkOnlyAvailableSeats');
-  const selectScheduleDays = document.getElementById('selectScheduleDays');
-  const chkAvoid8Am = document.getElementById('chkAvoid8Am');
+  const chkAvoidSameDayExams = document.getElementById('chkAvoidSameDayExams');
+  const chkSeparateLabDay = document.getElementById('chkSeparateLabDay');
+  const selectMaxDailyClasses = document.getElementById('selectMaxDailyClasses');
+  const btnToggleMoreOptions = document.getElementById('btnToggleMoreOptions');
+  const moreOptionsContent = document.getElementById('moreOptionsContent');
+  const accordionArrow = document.getElementById('accordionArrow');
+
+  // Preset buttons
+  const presetSpeedRun = document.getElementById('presetSpeedRun');
+  const presetBalanced = document.getElementById('presetBalanced');
+  const preset3Day = document.getElementById('preset3Day');
+  const presetLateRiser = document.getElementById('presetLateRiser');
+  const presetReset = document.getElementById('presetReset');
+
+  // Accordion Toggle
+  if (btnToggleMoreOptions && moreOptionsContent) {
+    btnToggleMoreOptions.addEventListener('click', () => {
+      const isOpen = moreOptionsContent.classList.toggle('open');
+      if (accordionArrow) accordionArrow.textContent = isOpen ? '▴' : '▾';
+    });
+  }
+
+  // Preset Handlers
+  function setChecked(selector, values) {
+    const valSet = new Set(values);
+    document.querySelectorAll(selector).forEach(cb => {
+      cb.checked = valSet.has(cb.value);
+    });
+  }
+
+  if (presetSpeedRun) {
+    presetSpeedRun.addEventListener('click', () => {
+      setChecked('input[name="prefBreak"]', ['no-break']);
+      setChecked('input[name="prefFreeSlot"]', ['05:00 PM - 06:20 PM']);
+      setChecked('input[name="prefTargetDay"]', ['3', '4']);
+      showNotification('Preset: Back-to-Back Speed Run activated!');
+    });
+  }
+
+  if (presetBalanced) {
+    presetBalanced.addEventListener('click', () => {
+      setChecked('input[name="prefBreak"]', ['1-break']);
+      setChecked('input[name="prefFreeSlot"]', ['01:20 PM - 02:00 PM']);
+      setChecked('input[name="prefTargetDay"]', ['3', '4']);
+      showNotification('Preset: 1-Class Break & Lunch Free activated!');
+    });
+  }
+
+  if (preset3Day) {
+    preset3Day.addEventListener('click', () => {
+      setChecked('input[name="prefTargetDay"]', ['3']);
+      setChecked('input[name="prefOffDay"]', ['Thu', 'Sat']);
+      showNotification('Preset: 3-Day Long Weekend activated!');
+    });
+  }
+
+  if (presetLateRiser) {
+    presetLateRiser.addEventListener('click', () => {
+      setChecked('input[name="prefFreeSlot"]', ['08:00 AM - 09:20 AM', '09:30 AM - 10:50 AM']);
+      showNotification('Preset: No Early Morning (After 11:00 AM) activated!');
+    });
+  }
+
+  if (presetReset) {
+    presetReset.addEventListener('click', () => {
+      setChecked('input[name="prefBreak"]', ['no-break', '1-break']);
+      setChecked('input[name="prefFreeSlot"]', []);
+      setChecked('input[name="prefTargetDay"]', ['3', '4']);
+      setChecked('input[name="prefOffDay"]', []);
+      if (chkOnlyAvailableSeats) chkOnlyAvailableSeats.checked = false;
+      if (chkAvoidSameDayExams) chkAvoidSameDayExams.checked = true;
+      if (chkSeparateLabDay) chkSeparateLabDay.checked = false;
+      if (selectMaxDailyClasses) selectMaxDailyClasses.value = 'any';
+      showNotification('All preferences reset to standard default.');
+    });
+  }
 
   // --- Modal Helpers ---
   function openModal(modalEl) { modalEl.classList.add('open'); }
@@ -329,7 +403,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const options = {
-      onlyAvailableSeats: chkOnlyAvailableSeats.checked,
+      onlyAvailableSeats: chkOnlyAvailableSeats ? chkOnlyAvailableSeats.checked : false,
       lockedSections: lockedSections,
       maxLimit: 15000
     };
@@ -349,32 +423,69 @@ document.addEventListener('DOMContentLoaded', () => {
       return alert('No conflict-free routine combinations found with the selected options and seat constraints. Try unchecking "Only Available Seats" or unlocking sections.');
     }
 
-    // Evaluate marks strictly out of 100
+    // Collect Multi-Select Preferences
+    const selectedBreaks = Array.from(document.querySelectorAll('input[name="prefBreak"]:checked')).map(cb => cb.value);
+    const selectedFreeSlots = Array.from(document.querySelectorAll('input[name="prefFreeSlot"]:checked')).map(cb => cb.value);
+    const selectedTargetDays = Array.from(document.querySelectorAll('input[name="prefTargetDay"]:checked')).map(cb => parseInt(cb.value, 10));
+    const selectedOffDays = Array.from(document.querySelectorAll('input[name="prefOffDay"]:checked')).map(cb => cb.value);
+    const avoidExams = chkAvoidSameDayExams ? chkAvoidSameDayExams.checked : false;
+    const separateLab = chkSeparateLabDay ? chkSeparateLabDay.checked : false;
+    const maxDailyLimit = selectMaxDailyClasses && selectMaxDailyClasses.value !== 'any' ? parseInt(selectMaxDailyClasses.value, 10) : null;
+
+    // Evaluate marks strictly out of 100 with active preferences
     const rankOptions = {
-      avoid8Am: chkAvoid8Am.checked
+      allowedBreaks: selectedBreaks,
+      forbiddenSlots: selectedFreeSlots,
+      avoidSameDayExams: avoidExams
     };
 
     let ranked = RoutineRanker.rankRoutines(genResult.routines, rankOptions);
 
-    // Target routine days filter
-    const targetDays = selectScheduleDays.value;
-    if (targetDays === '3') {
-      ranked = ranked.filter(r => r.evalData.totalDays === 3);
-    } else if (targetDays === '4') {
-      ranked = ranked.filter(r => r.evalData.totalDays === 4);
-    } else if (targetDays === '3-4') {
-      ranked = ranked.filter(r => r.evalData.totalDays === 3 || r.evalData.totalDays === 4);
-    } else if (targetDays === '5') {
-      ranked = ranked.filter(r => r.evalData.totalDays === 5);
+    // Filter by Target Days
+    if (selectedTargetDays.length > 0) {
+      const dayFiltered = ranked.filter(r => selectedTargetDays.includes(r.evalData.totalDays));
+      if (dayFiltered.length > 0) ranked = dayFiltered;
     }
 
-    // Preferred off-days filter
-    const preferredOffDays = Array.from(document.querySelectorAll('input[name="prefOffDay"]:checked')).map(cb => cb.value);
-    if (preferredOffDays.length > 0) {
-      ranked = ranked.filter(r => {
+    // Filter by Preferred Off-Days
+    if (selectedOffDays.length > 0) {
+      const offFiltered = ranked.filter(r => {
         const offDaySet = new Set(r.evalData.offDays);
-        return preferredOffDays.every(d => offDaySet.has(d));
+        return selectedOffDays.every(d => offDaySet.has(d));
       });
+      if (offFiltered.length > 0) ranked = offFiltered;
+    }
+
+    // Filter by Allowed Class Breaks / Pacing
+    if (selectedBreaks.length > 0 && selectedBreaks.length < 4) {
+      const breakFiltered = ranked.filter(r => {
+        return r.evalData.gapTypesPresent.every(gt => selectedBreaks.includes(gt));
+      });
+      if (breakFiltered.length > 0) ranked = breakFiltered;
+    }
+
+    // Filter by Keep These Time Slots Free
+    if (selectedFreeSlots.length > 0) {
+      const slotFiltered = ranked.filter(r => r.evalData.forbiddenSlotOverlaps.length === 0);
+      if (slotFiltered.length > 0) ranked = slotFiltered;
+    }
+
+    // Filter by Avoid Same-Day Exams
+    if (avoidExams) {
+      const examFiltered = ranked.filter(r => !r.evalData.hasExamClash);
+      if (examFiltered.length > 0) ranked = examFiltered;
+    }
+
+    // Filter by Separate Lab Day
+    if (separateLab) {
+      const labFiltered = ranked.filter(r => r.evalData.isDedicatedLabDay);
+      if (labFiltered.length > 0) ranked = labFiltered;
+    }
+
+    // Filter by Max Classes in a Single Day
+    if (maxDailyLimit) {
+      const maxDailyFiltered = ranked.filter(r => r.evalData.maxDailyClasses <= maxDailyLimit);
+      if (maxDailyFiltered.length > 0) ranked = maxDailyFiltered;
     }
 
     // Re-assign ranks
@@ -386,7 +497,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.lastRankedResults = ranked;
 
     if (ranked.length === 0) {
-      return alert('No routines matched your day count or off-day filters. Try widening your preferences.');
+      return alert('No routines matched your filters. Try selecting more break types or loosening your day filters.');
     }
 
     // Display Results
@@ -514,6 +625,9 @@ document.addEventListener('DOMContentLoaded', () => {
               <span style="color: var(--emerald);"><strong>Off-Days:</strong> ${evalData.offDays.length ? evalData.offDays.join(', ') : 'None'} 🌴</span>
               <span>•</span>
               <span style="color: #94a3b8;"><strong>Latest Dismissal:</strong> ${evalData.latestDeparture}</span>
+            </div>
+            <div class="routine-badges">
+              ${(evalData.tags || []).map(t => `<span class="routine-badge">${t}</span>`).join('')}
             </div>
           </div>
 

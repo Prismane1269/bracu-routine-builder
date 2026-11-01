@@ -122,6 +122,11 @@ async function runE2ETests() {
     console.log(`✓ Generated ${kpiTotal} routines with live database seats!`);
     console.log(`✓ Top Evaluated Score: ${kpiTop}`);
 
+    // Verify Routine Badges
+    const badgeCount = await page.$$eval('.routine-badges .routine-badge', els => els.length);
+    console.log(`✓ Verified ${badgeCount} student preference badge tags rendered on cards.`);
+    if (badgeCount === 0) throw new Error('Expected routine badge tags to be rendered');
+
     // 6. Test In-Browser Consolidated PDF Generation
     console.log('Step 6: Testing PDF generation from live data...');
     const pdfBlobSize = await page.evaluate(() => {
@@ -134,8 +139,21 @@ async function runE2ETests() {
     console.log(`✓ PDF Blob generated: ${pdfBlobSize} bytes.`);
     if (pdfBlobSize < 10000) throw new Error('PDF size too small');
 
-    // 7. Test "Refresh Live Seats" button
-    console.log('Step 7: Testing "Refresh Live Seats" trigger...');
+    // 7. Test Presets & Accordion Interaction
+    console.log('Step 7: Testing presets and accordion interaction...');
+    await page.click('#btnToggleMoreOptions');
+    const isAccordionOpen = await page.$eval('#moreOptionsContent', el => el.classList.contains('open'));
+    console.log(`✓ Accordion toggle opened successfully: ${isAccordionOpen}`);
+    if (!isAccordionOpen) throw new Error('Expected accordion to open');
+
+    await page.click('#presetBalanced');
+    const isOneBreakChecked = await page.$eval('input[name="prefBreak"][value="1-break"]', el => el.checked);
+    const isLunchChecked = await page.$eval('input[name="prefFreeSlot"][value="01:20 PM - 02:00 PM"]', el => el.checked);
+    console.log(`✓ Preset "Balanced (1-Class Break)" checked 1-break (${isOneBreakChecked}) and Lunch (${isLunchChecked})`);
+    if (!isOneBreakChecked || !isLunchChecked) throw new Error('Expected presetBalanced to check break and lunch');
+
+    // 8. Test "Refresh Live Seats" button
+    console.log('Step 8: Testing "Refresh Live Seats" trigger...');
     await page.click('#btnRefreshLive');
     await new Promise(r => setTimeout(r, 2500));
     const refreshedStatus = await page.$eval('#syncStatusText', el => el.textContent);

@@ -144,29 +144,68 @@
       explanations.push(`Bonus: Average dismissal time before 2:15 PM (+2)`);
     }
 
-    // --- 3. Idle Campus Wait Time / Gaps (Max 15 points) ---
+    // --- 3. Idle Campus Wait Time & Class Pacing (Max 15 points) ---
     let totalGapMins = 0;
+    let maxSingleGapMins = 0;
+    const gapTypesPresent = new Set();
+    let gapCount = 0;
+
     for (const [d, slots] of Object.entries(dayClasses)) {
       const sorted = [...slots].sort((a, b) => a.start - b.start);
       for (let i = 0; i < sorted.length - 1; i++) {
+        gapCount++;
         const gap = sorted[i + 1].start - sorted[i].end;
         if (gap > 0) totalGapMins += gap;
+        if (gap > maxSingleGapMins) maxSingleGapMins = gap;
+
+        if (gap <= 20) {
+          gapTypesPresent.add('no-break');
+        } else if (gap >= 60 && gap <= 110) {
+          gapTypesPresent.add('1-break');
+        } else if (gap >= 130 && gap <= 190) {
+          gapTypesPresent.add('2-breaks');
+        } else {
+          gapTypesPresent.add('long-gaps');
+        }
       }
     }
 
+    if (gapCount === 0) {
+      gapTypesPresent.add('no-break');
+    }
+
+    const hasOnlyNoBreaks = gapCount === 0 || (gapTypesPresent.size === 1 && gapTypesPresent.has('no-break'));
+    const has1ClassBreaks = gapTypesPresent.has('1-break') && !gapTypesPresent.has('2-breaks') && !gapTypesPresent.has('long-gaps');
+
     let gapScore = 0;
-    if (totalGapMins === 0) {
-      gapScore = 15;
-      explanations.push(`Zero Campus Wait Time: Classes back-to-back (+15/15)`);
-    } else if (totalGapMins <= 40) {
-      gapScore = 13;
-      explanations.push(`Minimal Wait Time: Only ${totalGapMins}m campus gap across week (+13/15)`);
-    } else if (totalGapMins <= 90) {
-      gapScore = 9;
-      explanations.push(`Moderate Wait Time: ${totalGapMins}m campus gap (+9/15)`);
+    const allowedBreaks = Array.isArray(options.allowedBreaks) && options.allowedBreaks.length > 0 ? options.allowedBreaks : null;
+
+    if (allowedBreaks) {
+      // User has custom pacing preference
+      const isCompliant = Array.from(gapTypesPresent).every(t => allowedBreaks.includes(t));
+      if (isCompliant) {
+        gapScore = 15;
+        explanations.push(`Perfect Pacing: Matches your selected break options (+15/15)`);
+      } else {
+        const matchesSome = Array.from(gapTypesPresent).some(t => allowedBreaks.includes(t));
+        gapScore = matchesSome ? 8 : 3;
+        explanations.push(`Partial Pacing Match: Routine has gaps outside selected pacing (+${gapScore}/15)`);
+      }
     } else {
-      gapScore = Math.max(2, 6 - Math.floor((totalGapMins - 90) / 45));
-      explanations.push(`Long Wait Time: ${totalGapMins}m idle campus gap (+${gapScore}/15)`);
+      // Default pacing scoring
+      if (totalGapMins === 0) {
+        gapScore = 15;
+        explanations.push(`Zero Campus Wait Time: Classes back-to-back (+15/15)`);
+      } else if (totalGapMins <= 40) {
+        gapScore = 13;
+        explanations.push(`Minimal Wait Time: Only ${totalGapMins}m campus gap across week (+13/15)`);
+      } else if (totalGapMins <= 90) {
+        gapScore = 9;
+        explanations.push(`Moderate Wait Time: ${totalGapMins}m campus gap (+9/15)`);
+      } else {
+        gapScore = Math.max(2, 6 - Math.floor((totalGapMins - 90) / 45));
+        explanations.push(`Long Wait Time: ${totalGapMins}m idle campus gap (+${gapScore}/15)`);
+      }
     }
 
     // --- 4. Morning Comfort (No 8:00 AM rush) (Max 15 points) ---
@@ -196,12 +235,19 @@
 
     // --- 5. Lab & Theory Balance (Max 10 points) ---
     let labScore = 10;
+    let isDedicatedLabDay = false;
     if (labDays.size > 0) {
       let maxClassesOnLabDay = 0;
+      let allLabDaysDedicated = true;
       for (const d of labDays) {
-        const count = (dayClasses[d] || []).length;
-        if (count > maxClassesOnLabDay) maxClassesOnLabDay = count;
+        const slotsOnDay = dayClasses[d] || [];
+        if (slotsOnDay.length > maxClassesOnLabDay) maxClassesOnLabDay = slotsOnDay.length;
+        if (slotsOnDay.some(s => !s.isLab)) {
+          allLabDaysDedicated = false;
+        }
       }
+      isDedicatedLabDay = allLabDaysDedicated;
+
       if (maxClassesOnLabDay === 1) {
         labScore = 10;
         explanations.push(`Isolated Lab Day: Lab has dedicated day with no theory burden (+10/10)`);
@@ -215,6 +261,43 @@
     } else {
       labScore = 10;
     }
+
+    // --- 6. Forbidden Time Slots Check ---
+    const forbiddenSlotOverlaps = [];
+    const forbiddenSlots = Array.isArray(options.forbiddenSlots) ? options.forbiddenSlots : [];
+    for (const fSlot of forbiddenSlots) {
+      const [fStart, fEnd] = parseTimeRange(fSlot);
+      if (fStart === 0 && fEnd === 0) continue;
+      for (const [d, slots] of Object.entries(dayClasses)) {
+        for (const s of slots) {
+          if (Math.max(s.start, fStart) < Math.min(s.end, fEnd)) {
+            if (!forbiddenSlotOverlaps.includes(fSlot)) {
+              forbiddenSlotOverlaps.push(fSlot);
+            }
+          }
+        }
+      }
+    }
+
+    // --- 7. Same-Day Exam Clash Check ---
+    let hasExamClash = false;
+    const routineCourses = Object.keys(routine);
+    for (let i = 0; i < routineCourses.length; i++) {
+      for (let j = i + 1; j < routineCourses.length; j++) {
+        const secA = routine[routineCourses[i]] || {};
+        const secB = routine[routineCourses[j]] || {};
+        if (secA.mid_exam && secB.mid_exam && secA.mid_exam.date && secA.mid_exam.date === secB.mid_exam.date) {
+          hasExamClash = true;
+        }
+        if (secA.final_exam && secB.final_exam && secA.final_exam.date && secA.final_exam.date === secB.final_exam.date) {
+          hasExamClash = true;
+        }
+      }
+    }
+
+    // --- 8. Daily Class Counts ---
+    const dailyClassCounts = Object.values(dayClasses).map(cls => cls.length);
+    const maxDailyClasses = dailyClassCounts.length ? Math.max(...dailyClassCounts) : 0;
 
     // --- Faculty Bonus (Optional Custom Preferences) ---
     let facultyBonus = 0;
@@ -231,8 +314,6 @@
     let baseScore = dayScore + earlyScore + gapScore + morningScore + labScore;
     baseScore = Math.max(0, Math.min(100, Math.round(baseScore)));
 
-    // Evaluated Mark: If faculty bonus applies, we can factor it into total marks, capping at 100
-    // Or we keep raw base score out of 100 and add faculty tie-breaker
     const totalScore = baseScore;
 
     // Grade calculation
@@ -253,6 +334,31 @@
       return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')} ${ampm}`;
     }
 
+    // --- Build Visual Badge Tags ---
+    const tags = [];
+    if (totalDays <= 3) tags.push('🌴 3-Day Weekend');
+    else if (totalDays === 4) tags.push('📅 4-Day Week');
+
+    if (hasOnlyNoBreaks) tags.push('⚡ Back-to-Back');
+    else if (has1ClassBreaks) tags.push('☕ 1-Class Breaks');
+
+    // Free Lunch Check (1:20 PM - 2:00 PM is 800 to 840 mins)
+    let hasLunchClass = false;
+    for (const [d, slots] of Object.entries(dayClasses)) {
+      for (const s of slots) {
+        if (Math.max(s.start, 800) < Math.min(s.end, 840)) {
+          hasLunchClass = true;
+          break;
+        }
+      }
+    }
+    if (!hasLunchClass) tags.push('🍱 Free Lunch Hour');
+
+    if (eightAmSlots === 0) tags.push('🌅 No 8:00 AM');
+    if (latestEndAcrossWeek <= 920) tags.push('🏃 Done by 3:20 PM');
+    if (!hasExamClash) tags.push('🛡️ 0 Exam Clashes');
+    if (isDedicatedLabDay) tags.push('🧪 Dedicated Lab Day');
+
     return {
       score: totalScore,
       grade: grade,
@@ -271,7 +377,17 @@
       latestDepartureMins: latestEndAcrossWeek,
       latestDeparture: minsToTimeStr(latestEndAcrossWeek),
       totalGapMins: totalGapMins,
+      maxSingleGapMins: maxSingleGapMins,
+      gapTypesPresent: Array.from(gapTypesPresent),
+      hasOnlyNoBreaks: hasOnlyNoBreaks,
+      has1ClassBreaks: has1ClassBreaks,
       eightAmCount: eightAmSlots,
+      hasLunchClass: hasLunchClass,
+      hasExamClash: hasExamClash,
+      isDedicatedLabDay: isDedicatedLabDay,
+      maxDailyClasses: maxDailyClasses,
+      forbiddenSlotOverlaps: forbiddenSlotOverlaps,
+      tags: tags,
       dayClasses: dayClasses
     };
   }

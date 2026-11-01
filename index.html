@@ -95,47 +95,154 @@
         <!-- Solver Preferences Card -->
         <div class="card">
           <div class="card-title">
-            <span>Schedule Preferences & Days</span>
+            <span>Schedule Preferences & Pacing</span>
           </div>
 
-          <div class="form-group">
-            <label class="checkbox-label">
-              <input type="checkbox" id="chkOnlyAvailableSeats">
-              <span><strong>Only Available Seats</strong> (Filter out 0 / Full seats)</span>
-            </label>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="selectScheduleDays">Target Routine Days</label>
-            <select id="selectScheduleDays" class="form-select">
-              <option value="any">Any Valid Day Count</option>
-              <option value="3">3-Day Only (High Efficiency 🌴)</option>
-              <option value="4">4-Day Only</option>
-              <option value="3-4">3 or 4-Day Only</option>
-              <option value="5">5-Day Only</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label class="checkbox-label">
-              <input type="checkbox" id="chkAvoid8Am">
-              <span><strong>Avoid 8:00 AM Rush</strong> (Morning Comfort bonus)</span>
-            </label>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Preferred Free / Off-Days (🌴)</label>
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; font-size: 12px;">
-              <label class="checkbox-label"><input type="checkbox" name="prefOffDay" value="Sun"> Sun</label>
-              <label class="checkbox-label"><input type="checkbox" name="prefOffDay" value="Mon"> Mon</label>
-              <label class="checkbox-label"><input type="checkbox" name="prefOffDay" value="Tue"> Tue</label>
-              <label class="checkbox-label"><input type="checkbox" name="prefOffDay" value="Wed"> Wed</label>
-              <label class="checkbox-label"><input type="checkbox" name="prefOffDay" value="Thu"> Thu</label>
-              <label class="checkbox-label"><input type="checkbox" name="prefOffDay" value="Sat"> Sat</label>
+          <!-- Quick 1-Click Presets -->
+          <div style="margin-bottom: 12px;">
+            <div style="font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px;">⚡ Quick Presets (1-Click Auto Select)</div>
+            <div class="preset-bar">
+              <button type="button" class="preset-btn" id="presetSpeedRun">🚀 Back-to-Back</button>
+              <button type="button" class="preset-btn" id="presetBalanced">☕ 1-Class Break</button>
+              <button type="button" class="preset-btn" id="preset3Day">🌴 3-Day Weekend</button>
+              <button type="button" class="preset-btn" id="presetLateRiser">🌅 No 8:00 AM</button>
+              <button type="button" class="preset-btn" id="presetReset" style="color: #94a3b8;">↺ Reset</button>
             </div>
           </div>
 
-          <button id="btnGenerate" class="btn btn-primary btn-lg" style="width: 100%; justify-content: center; margin-top: 10px;">
+          <!-- 1. Class Pacing / Breaks Between Classes (Multi-Select Chips) -->
+          <div class="form-group">
+            <label class="form-label">Class Breaks & Pacing <span style="font-size: 11px; font-weight: 400; color: #94a3b8;">(Select any you're okay with)</span></label>
+            <div class="chip-group" id="groupAllowedBreaks">
+              <label class="chip-label">
+                <input type="checkbox" name="prefBreak" value="no-break" checked>
+                <span class="chip-btn">No Breaks (Back-to-Back)</span>
+              </label>
+              <label class="chip-label">
+                <input type="checkbox" name="prefBreak" value="1-break" checked>
+                <span class="chip-btn">1 Class Break (~80 mins)</span>
+              </label>
+              <label class="chip-label">
+                <input type="checkbox" name="prefBreak" value="2-breaks">
+                <span class="chip-btn">2 Class Breaks (~2.5 hrs)</span>
+              </label>
+              <label class="chip-label">
+                <input type="checkbox" name="prefBreak" value="long-gaps">
+                <span class="chip-btn">Long Gaps (3+ hrs)</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 2. Keep These Time Slots Free (Multi-Select Chips) -->
+          <div class="form-group">
+            <label class="form-label">Keep These Time Slots Free <span style="font-size: 11px; font-weight: 400; color: #94a3b8;">(Zero classes scheduled)</span></label>
+            <div class="chip-group" id="groupForbiddenSlots">
+              <label class="chip-label">
+                <input type="checkbox" name="prefFreeSlot" value="08:00 AM - 09:20 AM">
+                <span class="chip-btn">08:00 AM - 09:20 AM</span>
+              </label>
+              <label class="chip-label">
+                <input type="checkbox" name="prefFreeSlot" value="09:30 AM - 10:50 AM">
+                <span class="chip-btn">09:30 AM - 10:50 AM</span>
+              </label>
+              <label class="chip-label">
+                <input type="checkbox" name="prefFreeSlot" value="11:00 AM - 12:20 PM">
+                <span class="chip-btn">11:00 AM - 12:20 PM</span>
+              </label>
+              <label class="chip-label">
+                <input type="checkbox" name="prefFreeSlot" value="12:30 PM - 01:50 PM">
+                <span class="chip-btn">12:30 PM - 01:50 PM</span>
+              </label>
+              <label class="chip-label">
+                <input type="checkbox" name="prefFreeSlot" value="01:20 PM - 02:00 PM">
+                <span class="chip-btn" style="border-color: rgba(245, 158, 11, 0.4); color: #fde68a;">🍱 1:20 PM - 2:00 PM (Lunch & Prayer)</span>
+              </label>
+              <label class="chip-label">
+                <input type="checkbox" name="prefFreeSlot" value="02:00 PM - 03:20 PM">
+                <span class="chip-btn">02:00 PM - 03:20 PM</span>
+              </label>
+              <label class="chip-label">
+                <input type="checkbox" name="prefFreeSlot" value="03:30 PM - 04:50 PM">
+                <span class="chip-btn">03:30 PM - 04:50 PM</span>
+              </label>
+              <label class="chip-label">
+                <input type="checkbox" name="prefFreeSlot" value="05:00 PM - 06:20 PM">
+                <span class="chip-btn">05:00 PM - 06:20 PM</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 3. Target Routine Days (Multi-Select Chips) -->
+          <div class="form-group">
+            <label class="form-label">Target Routine Days <span style="font-size: 11px; font-weight: 400; color: #94a3b8;">(Select acceptable day counts)</span></label>
+            <div class="chip-group" id="groupTargetDays">
+              <label class="chip-label">
+                <input type="checkbox" name="prefTargetDay" value="3" checked>
+                <span class="chip-btn">3-Day Only 🌴</span>
+              </label>
+              <label class="chip-label">
+                <input type="checkbox" name="prefTargetDay" value="4" checked>
+                <span class="chip-btn">4-Day Only</span>
+              </label>
+              <label class="chip-label">
+                <input type="checkbox" name="prefTargetDay" value="5" checked>
+                <span class="chip-btn">5-Day Only</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 4. Preferred Free / Off-Days (Multi-Select Chips) -->
+          <div class="form-group">
+            <label class="form-label">Preferred Free Off-Days (🌴)</label>
+            <div class="chip-group" id="groupOffDays">
+              <label class="chip-label"><input type="checkbox" name="prefOffDay" value="Sun"><span class="chip-btn">Sun</span></label>
+              <label class="chip-label"><input type="checkbox" name="prefOffDay" value="Mon"><span class="chip-btn">Mon</span></label>
+              <label class="chip-label"><input type="checkbox" name="prefOffDay" value="Tue"><span class="chip-btn">Tue</span></label>
+              <label class="chip-label"><input type="checkbox" name="prefOffDay" value="Wed"><span class="chip-btn">Wed</span></label>
+              <label class="chip-label"><input type="checkbox" name="prefOffDay" value="Thu"><span class="chip-btn">Thu</span></label>
+              <label class="chip-label"><input type="checkbox" name="prefOffDay" value="Sat"><span class="chip-btn">Sat</span></label>
+            </div>
+          </div>
+
+          <!-- 5. Collapsible More Options -->
+          <button type="button" class="accordion-toggle" id="btnToggleMoreOptions">
+            <span>⚙️ More Options (Seats, Exams, Labs)</span>
+            <span id="accordionArrow">▾</span>
+          </button>
+
+          <div class="accordion-content" id="moreOptionsContent">
+            <div class="form-group" style="margin-bottom: 8px;">
+              <label class="checkbox-label">
+                <input type="checkbox" id="chkOnlyAvailableSeats">
+                <span><strong>Only Available Seats</strong> (Filter out 0 / Full seats)</span>
+              </label>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 8px;">
+              <label class="checkbox-label">
+                <input type="checkbox" id="chkAvoidSameDayExams" checked>
+                <span><strong>Avoid Same-Day Midterm or Final Exams</strong></span>
+              </label>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 8px;">
+              <label class="checkbox-label">
+                <input type="checkbox" id="chkSeparateLabDay">
+                <span><strong>Separate Lab Day</strong> (Labs on their own day, no theory)</span>
+              </label>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" for="selectMaxDailyClasses">Max Classes in a Single Day</label>
+              <select id="selectMaxDailyClasses" class="form-select" style="padding: 6px 10px; font-size: 12px;">
+                <option value="any">No Limit</option>
+                <option value="2">Max 2 Classes / Day</option>
+                <option value="3">Max 3 Classes / Day</option>
+              </select>
+            </div>
+          </div>
+
+          <button id="btnGenerate" class="btn btn-primary btn-lg" style="width: 100%; justify-content: center; margin-top: 14px;">
             🚀 GENERATE ALL ROUTINES
           </button>
         </div>

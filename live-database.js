@@ -132,7 +132,9 @@
         seats_remaining: seatsRemaining,
         room: item.roomName || 'TBA',
         last_updated: item.lastUpdatedAt || null,
-        slots: slots
+        slots: slots,
+        mid_exam: sched.midExamDate ? { date: sched.midExamDate, time: `${sched.midExamStartTime || ''}-${sched.midExamEndTime || ''}` } : null,
+        final_exam: sched.finalExamDate ? { date: sched.finalExamDate, time: `${sched.finalExamStartTime || ''}-${sched.finalExamEndTime || ''}` } : null
       });
     }
 

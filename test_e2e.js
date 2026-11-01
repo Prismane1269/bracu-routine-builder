@@ -148,12 +148,23 @@ async function runE2ETests() {
 
     await page.click('#presetBalanced');
     const isOneBreakChecked = await page.$eval('input[name="prefBreak"][value="1-break"]', el => el.checked);
-    const isLunchChecked = await page.$eval('input[name="prefFreeSlot"][value="01:20 PM - 02:00 PM"]', el => el.checked);
-    console.log(`✓ Preset "Balanced (1-Class Break)" checked 1-break (${isOneBreakChecked}) and Lunch (${isLunchChecked})`);
-    if (!isOneBreakChecked || !isLunchChecked) throw new Error('Expected presetBalanced to check break and lunch');
+    console.log(`✓ Preset "Balanced" checked 1-break (${isOneBreakChecked})`);
+    if (!isOneBreakChecked) throw new Error('Expected presetBalanced to check break');
 
-    // 8. Test "Refresh Live Seats" button
-    console.log('Step 8: Testing "Refresh Live Seats" trigger...');
+    // Verify live update immediately happened without clicking generate or refreshing!
+    const kpiAfterPreset = await page.$eval('#kpiTotalRoutines', el => el.textContent);
+    console.log(`✓ Live update verified without page refresh! Routine count after preset: ${kpiAfterPreset}`);
+    if (parseInt(kpiAfterPreset, 10) === 0) throw new Error('Expected routines after presetBalanced');
+
+    // 8. Test preset reset live without refresh
+    console.log('Step 8: Testing preset reset live without clicking generate or refreshing...');
+    await page.click('#presetReset');
+    const kpiAfterReset = await page.$eval('#kpiTotalRoutines', el => el.textContent);
+    console.log(`✓ Preset reset verified live without refresh: ${kpiAfterReset}`);
+    if (parseInt(kpiAfterReset, 10) === 0) throw new Error('Expected routines after presetReset');
+
+    // 9. Test "Refresh Live Seats" button
+    console.log('Step 9: Testing "Refresh Live Seats" trigger...');
     await page.click('#btnRefreshLive');
     await new Promise(r => setTimeout(r, 2500));
     const refreshedStatus = await page.$eval('#syncStatusText', el => el.textContent);

@@ -1,0 +1,1299 @@
+{
+  "CSE110": [
+    {
+      "section": 1,
+      "faculty": "TAW",
+      "seats_remaining": 0,
+      "slots": [
+        {
+          "days": [
+            "Mon",
+            "Wed"
+          ],
+          "days_str": "MW",
+          "time": "11:00 AM-12:20 PM",
+          "room": "TBA"
+        },
+        {
+          "days": [
+            "Thu"
+          ],
+          "days_str": "Thu",
+          "time": "11:00 AM-01:50 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 2,
+      "faculty": "ADU",
+      "seats_remaining": 5,
+      "slots": [
+        {
+          "days": [
+            "Sun",
+            "Tue"
+          ],
+          "days_str": "ST",
+          "time": "11:00 AM-12:20 PM",
+          "room": "TBA"
+        },
+        {
+          "days": [
+            "Thu"
+          ],
+          "days_str": "Thu",
+          "time": "08:00 AM-10:50 AM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 3,
+      "faculty": "ADU",
+      "seats_remaining": 9,
+      "slots": [
+        {
+          "days": [
+            "Sun",
+            "Tue"
+          ],
+          "days_str": "ST",
+          "time": "12:30 PM-01:50 PM",
+          "room": "TBA"
+        },
+        {
+          "days": [
+            "Wed"
+          ],
+          "days_str": "Wed",
+          "time": "08:00 AM-10:50 AM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 4,
+      "faculty": "KNI",
+      "seats_remaining": 10,
+      "slots": [
+        {
+          "days": [
+            "Mon",
+            "Wed"
+          ],
+          "days_str": "MW",
+          "time": "02:00 PM-03:20 PM",
+          "room": "TBA"
+        },
+        {
+          "days": [
+            "Thu"
+          ],
+          "days_str": "Thu",
+          "time": "02:00 PM-04:50 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 5,
+      "faculty": "KNI",
+      "seats_remaining": 17,
+      "slots": [
+        {
+          "days": [
+            "Mon",
+            "Wed"
+          ],
+          "days_str": "MW",
+          "time": "03:30 PM-04:50 PM",
+          "room": "TBA"
+        },
+        {
+          "days": [
+            "Thu"
+          ],
+          "days_str": "Thu",
+          "time": "08:00 AM-10:50 AM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 6,
+      "faculty": "SBHN",
+      "seats_remaining": 16,
+      "slots": [
+        {
+          "days": [
+            "Sun",
+            "Tue"
+          ],
+          "days_str": "ST",
+          "time": "03:30 PM-04:50 PM",
+          "room": "TBA"
+        },
+        {
+          "days": [
+            "Wed"
+          ],
+          "days_str": "Wed",
+          "time": "11:00 AM-01:50 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 7,
+      "faculty": "RKBM",
+      "seats_remaining": 13,
+      "slots": [
+        {
+          "days": [
+            "Mon",
+            "Wed"
+          ],
+          "days_str": "MW",
+          "time": "02:00 PM-03:20 PM",
+          "room": "TBA"
+        },
+        {
+          "days": [
+            "Thu"
+          ],
+          "days_str": "Thu",
+          "time": "11:00 AM-01:50 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 8,
+      "faculty": "RKBM",
+      "seats_remaining": 16,
+      "slots": [
+        {
+          "days": [
+            "Mon",
+            "Wed"
+          ],
+          "days_str": "MW",
+          "time": "03:30 PM-04:50 PM",
+          "room": "TBA"
+        },
+        {
+          "days": [
+            "Thu"
+          ],
+          "days_str": "Thu",
+          "time": "02:00 PM-04:50 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 9,
+      "faculty": "TBA",
+      "seats_remaining": 20,
+      "slots": [
+        {
+          "days": [
+            "Sat",
+            "Thu"
+          ],
+          "days_str": "RA",
+          "time": "02:00 PM-03:20 PM",
+          "room": "TBA"
+        },
+        {
+          "days": [
+            "Wed"
+          ],
+          "days_str": "Wed",
+          "time": "02:00 PM-04:50 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 10,
+      "faculty": "MVH",
+      "seats_remaining": 1,
+      "slots": [
+        {
+          "days": [
+            "Sun",
+            "Tue"
+          ],
+          "days_str": "ST",
+          "time": "02:00 PM-03:20 PM",
+          "room": "TBA"
+        },
+        {
+          "days": [
+            "Wed"
+          ],
+          "days_str": "Wed",
+          "time": "08:00 AM-10:50 AM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 11,
+      "faculty": "MVH",
+      "seats_remaining": 13,
+      "slots": [
+        {
+          "days": [
+            "Sun",
+            "Tue"
+          ],
+          "days_str": "ST",
+          "time": "03:30 PM-04:50 PM",
+          "room": "TBA"
+        },
+        {
+          "days": [
+            "Wed"
+          ],
+          "days_str": "Wed",
+          "time": "11:00 AM-01:50 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 12,
+      "faculty": "RHD",
+      "seats_remaining": 20,
+      "slots": [
+        {
+          "days": [
+            "Mon",
+            "Wed"
+          ],
+          "days_str": "MW",
+          "time": "09:30 AM-10:50 AM",
+          "room": "TBA"
+        },
+        {
+          "days": [
+            "Thu"
+          ],
+          "days_str": "Thu",
+          "time": "08:00 AM-10:50 AM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 13,
+      "faculty": "HBN",
+      "seats_remaining": 17,
+      "slots": [
+        {
+          "days": [
+            "Sat",
+            "Thu"
+          ],
+          "days_str": "RA",
+          "time": "09:30 AM-10:50 AM",
+          "room": "TBA"
+        },
+        {
+          "days": [
+            "Wed"
+          ],
+          "days_str": "Wed",
+          "time": "02:00 PM-04:50 PM",
+          "room": "TBA"
+        }
+      ]
+    }
+  ],
+  "EEE101": [
+    {
+      "section": 1,
+      "faculty": "TBA",
+      "seats_remaining": 0,
+      "slots": [
+        {
+          "days": [
+            "Mon",
+            "Wed"
+          ],
+          "days_str": "MW",
+          "time": "09:30 AM-10:50 AM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 2,
+      "faculty": "TBA",
+      "seats_remaining": 0,
+      "slots": [
+        {
+          "days": [
+            "Sun",
+            "Tue"
+          ],
+          "days_str": "ST",
+          "time": "12:30 PM-01:50 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 3,
+      "faculty": "TBA",
+      "seats_remaining": 0,
+      "slots": [
+        {
+          "days": [
+            "Sun",
+            "Tue"
+          ],
+          "days_str": "ST",
+          "time": "11:00 AM-12:20 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 4,
+      "faculty": "TBA",
+      "seats_remaining": 0,
+      "slots": [
+        {
+          "days": [
+            "Mon",
+            "Wed"
+          ],
+          "days_str": "MW",
+          "time": "02:00 PM-03:20 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 5,
+      "faculty": "TBA",
+      "seats_remaining": 2,
+      "slots": [
+        {
+          "days": [
+            "Sat",
+            "Thu"
+          ],
+          "days_str": "RA",
+          "time": "12:30 PM-01:50 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 6,
+      "faculty": "TBA",
+      "seats_remaining": 0,
+      "slots": [
+        {
+          "days": [
+            "Mon",
+            "Wed"
+          ],
+          "days_str": "MW",
+          "time": "12:30 PM-01:50 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 7,
+      "faculty": "TBA",
+      "seats_remaining": 32,
+      "slots": [
+        {
+          "days": [
+            "Sat",
+            "Thu"
+          ],
+          "days_str": "RA",
+          "time": "02:00 PM-03:20 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 8,
+      "faculty": "TBA",
+      "seats_remaining": 5,
+      "slots": [
+        {
+          "days": [
+            "Sun",
+            "Tue"
+          ],
+          "days_str": "ST",
+          "time": "11:00 AM-12:20 PM",
+          "room": "TBA"
+        }
+      ]
+    }
+  ],
+  "EEE101L": [
+    {
+      "section": 1,
+      "faculty": "TBA",
+      "seats_remaining": 0,
+      "slots": [
+        {
+          "days": [
+            "Wed"
+          ],
+          "days_str": "Wed",
+          "time": "11:00 AM-01:50 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 2,
+      "faculty": "TBA",
+      "seats_remaining": 0,
+      "slots": [
+        {
+          "days": [
+            "Thu"
+          ],
+          "days_str": "Thu",
+          "time": "02:00 PM-04:50 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 3,
+      "faculty": "TBA",
+      "seats_remaining": 0,
+      "slots": [
+        {
+          "days": [
+            "Tue"
+          ],
+          "days_str": "Tue",
+          "time": "08:00 AM-10:50 AM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 4,
+      "faculty": "TBA",
+      "seats_remaining": 0,
+      "slots": [
+        {
+          "days": [
+            "Thu"
+          ],
+          "days_str": "Thu",
+          "time": "11:00 AM-01:50 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 5,
+      "faculty": "TBA",
+      "seats_remaining": 2,
+      "slots": [
+        {
+          "days": [
+            "Thu"
+          ],
+          "days_str": "Thu",
+          "time": "11:00 AM-01:50 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 6,
+      "faculty": "TBA",
+      "seats_remaining": 0,
+      "slots": [
+        {
+          "days": [
+            "Sun"
+          ],
+          "days_str": "Sun",
+          "time": "08:00 AM-10:50 AM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 7,
+      "faculty": "TBA",
+      "seats_remaining": 2,
+      "slots": [
+        {
+          "days": [
+            "Wed"
+          ],
+          "days_str": "Wed",
+          "time": "02:00 PM-04:50 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 8,
+      "faculty": "TBA",
+      "seats_remaining": 0,
+      "slots": [
+        {
+          "days": [
+            "Wed"
+          ],
+          "days_str": "Wed",
+          "time": "02:00 PM-04:50 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 9,
+      "faculty": "TBA",
+      "seats_remaining": 6,
+      "slots": [
+        {
+          "days": [
+            "Sun"
+          ],
+          "days_str": "Sun",
+          "time": "02:00 PM-04:50 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 10,
+      "faculty": "TBA",
+      "seats_remaining": 0,
+      "slots": [
+        {
+          "days": [
+            "Tue"
+          ],
+          "days_str": "Tue",
+          "time": "02:00 PM-04:50 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 11,
+      "faculty": "TBA",
+      "seats_remaining": 7,
+      "slots": [
+        {
+          "days": [
+            "Sat"
+          ],
+          "days_str": "Sat",
+          "time": "11:00 AM-01:50 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 12,
+      "faculty": "TBA",
+      "seats_remaining": 5,
+      "slots": [
+        {
+          "days": [
+            "Sat"
+          ],
+          "days_str": "Sat",
+          "time": "02:00 PM-04:50 PM",
+          "room": "TBA"
+        }
+      ]
+    }
+  ],
+  "MAT120": [
+    {
+      "section": 1,
+      "faculty": "TBA",
+      "seats_remaining": 0,
+      "slots": [
+        {
+          "days": [
+            "Sun",
+            "Tue"
+          ],
+          "days_str": "ST",
+          "time": "09:30 AM-10:50 AM",
+          "room": "TBA"
+        },
+        {
+          "days": [
+            "Sat"
+          ],
+          "days_str": "Sat",
+          "time": "08:00 AM-09:20 AM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 2,
+      "faculty": "TBA",
+      "seats_remaining": 0,
+      "slots": [
+        {
+          "days": [
+            "Sun",
+            "Tue"
+          ],
+          "days_str": "ST",
+          "time": "11:00 AM-12:20 PM",
+          "room": "TBA"
+        },
+        {
+          "days": [
+            "Sat"
+          ],
+          "days_str": "Sat",
+          "time": "09:30 AM-10:50 AM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 3,
+      "faculty": "TBA",
+      "seats_remaining": 0,
+      "slots": [
+        {
+          "days": [
+            "Sun",
+            "Tue"
+          ],
+          "days_str": "ST",
+          "time": "02:00 PM-03:20 PM",
+          "room": "TBA"
+        },
+        {
+          "days": [
+            "Sat"
+          ],
+          "days_str": "Sat",
+          "time": "11:00 AM-12:20 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 4,
+      "faculty": "TBA",
+      "seats_remaining": 1,
+      "slots": [
+        {
+          "days": [
+            "Sun",
+            "Tue"
+          ],
+          "days_str": "ST",
+          "time": "03:30 PM-04:50 PM",
+          "room": "TBA"
+        },
+        {
+          "days": [
+            "Sat"
+          ],
+          "days_str": "Sat",
+          "time": "12:30 PM-01:50 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 5,
+      "faculty": "TBA",
+      "seats_remaining": 0,
+      "slots": [
+        {
+          "days": [
+            "Mon",
+            "Wed",
+            "Tue"
+          ],
+          "days_str": "MWT",
+          "time": "08:00 AM-09:20 AM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 6,
+      "faculty": "TBA",
+      "seats_remaining": 0,
+      "slots": [
+        {
+          "days": [
+            "Mon",
+            "Wed",
+            "Tue"
+          ],
+          "days_str": "MWT",
+          "time": "09:30 AM-10:50 AM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 7,
+      "faculty": "TBA",
+      "seats_remaining": 0,
+      "slots": [
+        {
+          "days": [
+            "Mon",
+            "Wed",
+            "Tue"
+          ],
+          "days_str": "MWT",
+          "time": "11:00 AM-12:20 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 8,
+      "faculty": "TBA",
+      "seats_remaining": 0,
+      "slots": [
+        {
+          "days": [
+            "Mon",
+            "Wed"
+          ],
+          "days_str": "MW",
+          "time": "12:30 PM-01:50 PM",
+          "room": "TBA"
+        },
+        {
+          "days": [
+            "Thu"
+          ],
+          "days_str": "Thu",
+          "time": "08:00 AM-09:20 AM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 9,
+      "faculty": "TBA",
+      "seats_remaining": 0,
+      "slots": [
+        {
+          "days": [
+            "Mon",
+            "Wed"
+          ],
+          "days_str": "MW",
+          "time": "02:00 PM-03:20 PM",
+          "room": "TBA"
+        },
+        {
+          "days": [
+            "Thu"
+          ],
+          "days_str": "Thu",
+          "time": "09:30 AM-10:50 AM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 10,
+      "faculty": "TBA",
+      "seats_remaining": 1,
+      "slots": [
+        {
+          "days": [
+            "Mon",
+            "Wed"
+          ],
+          "days_str": "MW",
+          "time": "03:30 PM-04:50 PM",
+          "room": "TBA"
+        },
+        {
+          "days": [
+            "Thu"
+          ],
+          "days_str": "Thu",
+          "time": "11:00 AM-12:20 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 11,
+      "faculty": "TBA",
+      "seats_remaining": 9,
+      "slots": [
+        {
+          "days": [
+            "Sat",
+            "Thu"
+          ],
+          "days_str": "RA",
+          "time": "09:30 AM-10:50 AM",
+          "room": "TBA"
+        },
+        {
+          "days": [
+            "Sun"
+          ],
+          "days_str": "Sun",
+          "time": "08:00 AM-09:20 AM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 12,
+      "faculty": "TBA",
+      "seats_remaining": 20,
+      "slots": [
+        {
+          "days": [
+            "Sat",
+            "Thu"
+          ],
+          "days_str": "RA",
+          "time": "12:30 PM-01:50 PM",
+          "room": "TBA"
+        },
+        {
+          "days": [
+            "Sun"
+          ],
+          "days_str": "Sun",
+          "time": "09:30 AM-10:50 AM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 13,
+      "faculty": "TBA",
+      "seats_remaining": 16,
+      "slots": [
+        {
+          "days": [
+            "Sat",
+            "Thu"
+          ],
+          "days_str": "RA",
+          "time": "02:00 PM-03:20 PM",
+          "room": "TBA"
+        },
+        {
+          "days": [
+            "Sun"
+          ],
+          "days_str": "Sun",
+          "time": "11:00 AM-12:20 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 14,
+      "faculty": "TBA",
+      "seats_remaining": 28,
+      "slots": [
+        {
+          "days": [
+            "Sat",
+            "Thu"
+          ],
+          "days_str": "RA",
+          "time": "03:30 PM-04:50 PM",
+          "room": "TBA"
+        },
+        {
+          "days": [
+            "Wed"
+          ],
+          "days_str": "Wed",
+          "time": "08:00 AM-09:20 AM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 15,
+      "faculty": "TBA",
+      "seats_remaining": 30,
+      "slots": [
+        {
+          "days": [
+            "Sat",
+            "Thu"
+          ],
+          "days_str": "RA",
+          "time": "05:00 PM-06:20 PM",
+          "room": "TBA"
+        },
+        {
+          "days": [
+            "Wed"
+          ],
+          "days_str": "Wed",
+          "time": "09:30 AM-10:50 AM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 16,
+      "faculty": "TBA",
+      "seats_remaining": 12,
+      "slots": [
+        {
+          "days": [
+            "Sun",
+            "Tue"
+          ],
+          "days_str": "ST",
+          "time": "08:00 AM-09:20 AM",
+          "room": "TBA"
+        },
+        {
+          "days": [
+            "Sat"
+          ],
+          "days_str": "Sat",
+          "time": "02:00 PM-03:20 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 17,
+      "faculty": "TBA",
+      "seats_remaining": 19,
+      "slots": [
+        {
+          "days": [
+            "Sun",
+            "Tue"
+          ],
+          "days_str": "ST",
+          "time": "09:30 AM-10:50 AM",
+          "room": "TBA"
+        },
+        {
+          "days": [
+            "Sat"
+          ],
+          "days_str": "Sat",
+          "time": "03:30 PM-04:50 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 18,
+      "faculty": "TBA",
+      "seats_remaining": 0,
+      "slots": [
+        {
+          "days": [
+            "Sun",
+            "Tue"
+          ],
+          "days_str": "ST",
+          "time": "11:00 AM-12:20 PM",
+          "room": "TBA"
+        },
+        {
+          "days": [
+            "Mon"
+          ],
+          "days_str": "Mon",
+          "time": "08:00 AM-09:20 AM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 19,
+      "faculty": "TBA",
+      "seats_remaining": 0,
+      "slots": [
+        {
+          "days": [
+            "Sun",
+            "Tue"
+          ],
+          "days_str": "ST",
+          "time": "12:30 PM-01:50 PM",
+          "room": "TBA"
+        },
+        {
+          "days": [
+            "Mon"
+          ],
+          "days_str": "Mon",
+          "time": "09:30 AM-10:50 AM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 20,
+      "faculty": "TBA",
+      "seats_remaining": 17,
+      "slots": [
+        {
+          "days": [
+            "Sat",
+            "Thu"
+          ],
+          "days_str": "RA",
+          "time": "08:00 AM-09:20 AM",
+          "room": "TBA"
+        },
+        {
+          "days": [
+            "Wed"
+          ],
+          "days_str": "Wed",
+          "time": "02:00 PM-03:20 PM",
+          "room": "TBA"
+        }
+      ]
+    }
+  ],
+  "CSE230": [
+    {
+      "section": 1,
+      "faculty": "NZRF",
+      "seats_remaining": 0,
+      "slots": [
+        {
+          "days": [
+            "Mon",
+            "Wed"
+          ],
+          "days_str": "MW",
+          "time": "02:00 PM-03:20 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 2,
+      "faculty": "TSM",
+      "seats_remaining": 0,
+      "slots": [
+        {
+          "days": [
+            "Sun",
+            "Tue"
+          ],
+          "days_str": "ST",
+          "time": "02:00 PM-03:20 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 3,
+      "faculty": "TSM",
+      "seats_remaining": 0,
+      "slots": [
+        {
+          "days": [
+            "Sun",
+            "Tue"
+          ],
+          "days_str": "ST",
+          "time": "03:30 PM-04:50 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 4,
+      "faculty": "TSM",
+      "seats_remaining": 0,
+      "slots": [
+        {
+          "days": [
+            "Mon",
+            "Wed"
+          ],
+          "days_str": "MW",
+          "time": "02:00 PM-03:20 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 5,
+      "faculty": "AVB",
+      "seats_remaining": 17,
+      "slots": [
+        {
+          "days": [
+            "Sat",
+            "Thu"
+          ],
+          "days_str": "RA",
+          "time": "12:30 PM-01:50 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 6,
+      "faculty": "FIC",
+      "seats_remaining": 0,
+      "slots": [
+        {
+          "days": [
+            "Mon",
+            "Wed"
+          ],
+          "days_str": "MW",
+          "time": "02:00 PM-03:20 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 7,
+      "faculty": "FIC",
+      "seats_remaining": 15,
+      "slots": [
+        {
+          "days": [
+            "Mon",
+            "Wed"
+          ],
+          "days_str": "MW",
+          "time": "03:30 PM-04:50 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 8,
+      "faculty": "TBA",
+      "seats_remaining": 0,
+      "slots": [
+        {
+          "days": [
+            "Sat",
+            "Thu"
+          ],
+          "days_str": "RA",
+          "time": "12:30 PM-01:50 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 9,
+      "faculty": "YND",
+      "seats_remaining": 0,
+      "slots": [
+        {
+          "days": [
+            "Sun",
+            "Tue"
+          ],
+          "days_str": "ST",
+          "time": "12:30 PM-01:50 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 10,
+      "faculty": "YND",
+      "seats_remaining": 0,
+      "slots": [
+        {
+          "days": [
+            "Mon",
+            "Wed"
+          ],
+          "days_str": "MW",
+          "time": "03:30 PM-04:50 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 11,
+      "faculty": "KBS",
+      "seats_remaining": 18,
+      "slots": [
+        {
+          "days": [
+            "Mon",
+            "Wed"
+          ],
+          "days_str": "MW",
+          "time": "03:30 PM-04:50 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 12,
+      "faculty": "MAJIJ",
+      "seats_remaining": 0,
+      "slots": [
+        {
+          "days": [
+            "Mon",
+            "Wed"
+          ],
+          "days_str": "MW",
+          "time": "11:00 AM-12:20 PM",
+          "room": "TBA"
+        }
+      ]
+    },
+    {
+      "section": 13,
+      "faculty": "BDAS",
+      "seats_remaining": 22,
+      "slots": [
+        {
+          "days": [
+            "Sun",
+            "Tue"
+          ],
+          "days_str": "ST",
+          "time": "03:30 PM-04:50 PM",
+          "room": "TBA"
+        }
+      ]
+    }
+  ]
+}
